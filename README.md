@@ -20,9 +20,9 @@ Composer, obviously, but apart from that, this feature branch offers:
 5. Unit-tests are a glaring omission ATM
 
 ## Usage
-1. Add this repo to your composer.json file
+Add this repo to your composer.json file
 
-```
+```json
 {
     "repositories": [
         {
@@ -36,9 +36,9 @@ Composer, obviously, but apart from that, this feature branch offers:
 }
 ```
 
-2. Example usage (taken from the example.php file)
+Example usage (taken from the example.php file)
 
-```
+```php
 <?php
 use Freshdesk\Config\Connection,
     Freshdesk\Rest;
