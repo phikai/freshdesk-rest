@@ -60,21 +60,23 @@ class Rest
     {
         if ($urlMinusDomain{0} !== '/')
             $urlMinusDomain = '/'.$urlMinusDomain;
-        $url = $this->config->getBaseUrl().$urlMinusDomain;
+        $url = $this->config->getScheme().
+                $this->config->getDomain().
+                $urlMinusDomain;
 
         $header = array(
             "Content-type: application/json"
         );
 
         $opts = array(
-            \CURLOPT_USERPWD        => $this->username.':'.$this->password,
+            \CURLOPT_USERPWD        => $this->config->getUsername().':'.$this->config->getPassword(),
             \CURLOPT_HTTPHEADER     => array(
                 'Content-type: application/json'
             ),
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_HTTPAUTH       => \CURLAUTH_BASIC,
             \CURLOPT_SSL_VERIFYHOST => 0,
-            \CURLOPT_SSL_VERFYPEER  => 0
+            \CURLOPT_SSL_VERIFYPEER  => 0
         );
         if ($this->proxyServer)
             $opts[\CURLOPT_PROXY] = $this->proxyServer;
@@ -167,7 +169,7 @@ class Rest
                 );
             fclose($opts[\CURLOPT_STDERR]);
         }
-        curl_close($http);
+        curl_close($ch);
 
         return $httpResponse;
     }

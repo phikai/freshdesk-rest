@@ -11,7 +11,7 @@ class Connection
     /**
      * @var string
      */
-    protected $scheme = self::SCHEM_HTTP;
+    protected $scheme = self::SCHEME_HTTP;
 
     /**
      * @var string
@@ -44,6 +44,7 @@ class Connection
                 sprintf(
                     '%s is a malformed url (expected format: <scheme>://<user>:<pass>@<domain>)',
                     $url
+                )
             );
         $data = parse_url($url);
         $scheme = $data['scheme'].'://';
@@ -51,7 +52,7 @@ class Connection
             $this->scheme = $scheme;
         $this->username = $data['user'];
         $this->password = $data['pass'];
-        $this->domain = $url['host'];
+        $this->domain = $data['host'];
     }
 
     /**
@@ -122,7 +123,7 @@ class Connection
      */
     public function getUserName()
     {
-        return $this->userName;
+        return $this->username;
     }
 
     /**
