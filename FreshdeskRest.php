@@ -9,28 +9,95 @@
 class FreshdeskRest
 {
 
-    private $domain = '', $username = '', $password = '';
-    private $lastHttpStatusCode = 200;
-    private $lastHttpResponseText = '';
-    private $proxyServer = "";
+    const METHOD_POST = 'POST';
+    const METHOD_GET = 'GET';
+    const METHOD_DEL = 'DELETE';
+    const METHOD_PUT = 'PUT';
+
+    const SCHEME_HTTP = 'http://';
+    const SCHEME_HTTPS = 'https://';
+
+    /**
+     * @var string
+     */
+    protected $scheme = self::SCHEME_HTTP;
+
+    /**
+     * @var string
+     */
+    protected $domain = null;
+
+    /**
+     * @var string
+     */
+    protected $username = null;
+
+    /**
+     * @var string
+     */
+    protected $password = null;
+
+    /**
+     * @var int
+     */
+    protected $lastHttpStatusCode = null;
+
+    /**
+     * @var string
+     */
+    protected $lastHttpResponseText = '';
+
+    /**
+     * @var string
+     */
+    protected $proxyServer = "";
+
+    /**
+     * @var array<string>
+     */
+    protected $debugLogs = array();
 
     /**
      * Constructor
      * @param $domain - yourname.freshdesk.com - but will also accept http://yourname.freshdesk.com/, etc.
+                        pass "http[s]://user:pass@yourname.freshdesk.com" to set everything in one go
      * @param $username String Can be your username or it can be the API Key.
      * @param $password String Optional if you use API Key.
      */
-    function __construct($domain, $username, $password = 'X')
+    public function __construct($domain, $username = null, $scheme = null,  $password = null)
     {
+        $url = parse_url($domain);
 
-        $strippedDomain = preg_replace('#^https?://#', '', $domain); // removes http:// or https://
-        $strippedDomain = preg_replace('#/#', '', $strippedDomain); // get trailing slash
+        if ($username === null && $password === null)
+        {//assume $domain is full url, parse and set (after checking, of course)
+            if (!preg_match('/^https?:\/\/[^:]+:[^@]+@.+$/',$domain))
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        '%s should be a fully qualified domain (http[s]://user:pass@domain)',
+                        $domain
+                    )
+                );
+            $url = parse_url($domain);
+            $this->scheme = $url['scheme'].'://';
+            $this->password = $url['pass'];
+            $this->username = $url['user'];
+            $this->domain = $url['host'];
+        }
+        //remove leading http[s]://, if present. strpos + substr === fast functions
+        $i = strpos($domain, '://');
+        if ($i !== false)
+            $domain = substr($domain, $i+3);
+        //while a slash is found in the $domain string, substr it out
+        while(($i = strpos($domain, '/')) && $i !== false)
+            $domain = substr($domain, 0, $i);
 
-        $this->domain = $strippedDomain;
-        $this->password = $password;
+        if ($scheme)
+            $this->scheme = $scheme;
+        $this->domain = $domain;
+        $this->password = $password === null ? 'X' : $password;
         $this->username = $username;
     }
-    
+
     /**
      * @param $urlMinusDomain - should start with /... example /solutions/categories.xml
      * @param $method - should be either GET, POST, PUT (and theoretically DELETE but that's untested).
@@ -38,77 +105,140 @@ class FreshdeskRest
      * @param $debugMode {bool} optional - prints the request and response with headers
      * @return the raw response
      */
-    private function restCall($urlMinusDomain, $method, $postData = '',$debugMode=false)
+    protected function restCall($urlMinusDomain, $method, $postData = '',$debugMode=false)
     {
-        $url = "https://{$this->domain}$urlMinusDomain";
+        if ($urlMinusDomain{0} !== '/')
+            $urlMinusDomain = '/'.$urlMinusDomain;
+        $url = $this->scheme.$this->domain.$urlMinusDomain;
 
-        $header[] = "Content-type: application/json";
-        $ch = curl_init ($url);
+        $header = array(
+            "Content-type: application/json"
+        );
 
-        if ($method == "POST")
-        {
-            if( empty($postData) )
-                $header[] = "Content-length: 0"; // <-- seems to be unneccessary to specify this... curl does it automatically
-            curl_setopt ($ch, CURLOPT_POST, true);
-            curl_setopt ($ch, CURLOPT_POSTFIELDS, $postData);
-        }
-        else if( $method == "PUT" )
-        {
-            curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "PUT" );
-            curl_setopt ($ch, CURLOPT_POSTFIELDS, $postData);
-        }
-        else if( $method == "DELETE" )
-        {
-            curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "DELETE" ); // UNTESTED!
-        }
-        else
-        {
-            curl_setopt ($ch, CURLOPT_POST, false);
-        }
-
-        curl_setopt($ch, CURLOPT_USERPWD, "{$this->username}:{$this->password}");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-
-        if ( !empty($this->proxyServer) )
-        {
-            curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:8888');
-        }
-
-        $verbose = ''; // set later...
-        if ( $debugMode )
+        $opts = array(
+            \CURLOPT_USERPWD        => $this->username.':'.$this->password,
+            \CURLOPT_HTTPHEADER     => array(
+                'Content-type: application/json'
+            ),
+            \CURLOPT_RETURNTRANSFER => true,
+            \CURLOPT_HTTPAUTH       => \CURLAUTH_BASIC,
+            \CURLOPT_SSL_VERIFYHOST => 0,
+            \CURLOPT_SSL_VERFYPEER  => 0
+        );
+        if ($this->proxyServer)
+            $opts[\CURLOPT_PROXY] = $this->proxyServer;
+        if ($debugMode)
         {
             // CURLOPT_VERBOSE: TRUE to output verbose information. Writes output to STDERR,
             // or the file specified using CURLOPT_STDERR.
-            curl_setopt($ch, CURLOPT_VERBOSE, true);
-            $verbose = fopen('php://temp', 'rw+');
-            curl_setopt($ch, CURLOPT_STDERR, $verbose);
+            $opts[\CURLOPT_STDERR] = fopen('php://temp', 'rw+');
+            $opts[\CURLOPT_VERBOSE] = true;
+        }
+        switch (strtoupper(trim($method)))
+        {
+            case self::METHOD_POST:
+                if (empty($postData))
+                    $opts[\CURLOPT_HTTPHEADER][] = 'Content-length: 0';
+                $opts[\CURLOPT_POST] = true;
+                $opts[\CURLOPT_POSTFIELDS] = $postData;
+                break;
+            case self::METHOD_PUT:
+                $opts[\CURLOPT_CUSTOMREQUEST] =  'PUT';
+                $opts[\CURLOPT_POSTFIELDS] = $postData;
+            case self::METHOD_DEL:
+                $opts[\CURLOPT_CUSTOMREQUEST] = 'DELETE';
+                break;
+            case self::METHOD_GET:
+                $opts[\CURLOPT_POST] = false;
+                break;
+            default:
+                if ($debugMode)
+                    fclose($opts[\CURLOPT_STDERR]);//close stream, we have an error
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        'Method "%s" is not a valid method, use %s::METHOD_* constants',
+                        $method,
+                        __CLASS__
+                    )
+                );
+        }
+        $ch = curl_init($url);
+        if (!is_resource($ch))
+        {
+            fclose($opts[\CURLOPT_STDERR]);//close stream
+            throw new \RuntimeException(
+                'Could not init curl request'
+            );
+        }
+        if (!curl_setopt_array($ch, $opts))
+        {
+            fclose($opts[\CURLOPT_STDERR]);
+            throw new \RuntimeException('Could not set curl options');
         }
 
-        $httpResponse = curl_exec ($ch);
-
+        $this->lastHttpResponseText = $httpResponse = curl_exec($ch);
+        $this->lastHttpStatusCode = $httpCode = (int) curl_getinfo(
+            $ch,
+            \CURLINFO_HTTP_CODE
+        );
+        if ($httpCode < 200 || $httpCode > 299)
+        {
+            if (!$debugMode)
+            {
+                fclose($opts[\CURLOPT_STDERR]);//close stream
+                curl_close($ch);//close curl
+                throw new \RuntimeException(
+                    sprintf(
+                        '%s action to %s returned unexpected HTTP code (%d), repsonse: %s',
+                        $method,
+                        $url,
+                        $httpCode,
+                        $httpRespnse
+                    )
+                );
+            }
+        }
         if ( $debugMode )
         {
-            !rewind($verbose);
-            $verboseLog = stream_get_contents($verbose);
-            print $verboseLog;
+            if (rewind($opts[\CURLOPT_STDERR]))
+                $this->debugLogs[] = array(
+                    'URL'       => $url,
+                    'Method'    => $method,
+                    'HTTPCode'  => $httpCode,
+                    'Stream'    => stream_get_contents($opts[\CURLOPT_STDERR])
+                );
+            else
+                $this->debugLogs[] = array(
+                    'URL'       => $url,
+                    'Method'    => $method,
+                    'HTTPCode'  => $httpCode,
+                    'Stream'    => 'ERROR: rewind stream failed!'
+                );
+            fclose($opts[\CURLOPT_STDERR]);
         }
-
-
-        $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        //curl_close($http);
-        if( !preg_match( '/2\d\d/', $http_status ) )
-        {
-            //print "ERROR: HTTP Status Code == " . $http_status . " (302 also isn't an error)\n";
-        }
-
-        // print "\n\nREST RESPONSE: " . $httpResponse . "\n\n";
-        $this->lastHttpResponseText = $httpResponse;
+        curl_close($http);
 
         return $httpResponse;
+    }
+
+    /**
+     * Set the scheme (using the class' constants, preferably)
+     * @param string $scheme
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function setScheme($scheme)
+    {
+        if ($scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
+            throw new \InvalidArgumentException(
+                sprintf(
+                    '%s is not a valid scheme, use the %s::SCHEME_* constants',
+                    $scheme,
+                    __CLASS__
+                )
+            );
+        $this->scheme = $scheme;
+        return $this;
     }
 
     /**
@@ -139,124 +269,124 @@ class FreshdeskRest
     {
         $this->proxyServer = $proxyServer;
     }
-    
-    
+
+
     /**
      * Returns all the open tickets of the API user's credentials used for the request
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @return null|\stdClass
      */
     public function getApiUserTickets()
     {
-        $json = $this->restCall("/helpdesk/tickets.json", "GET");
+        $json = $this->restCall(
+            '/helpdesk/tickets.json',
+            self::METHOD_GET
+        );
 
-        if( empty($json) )
-            return false;
-
-        $json = json_decode($json);
-        return $json;
+        if (!$json)
+            return null;
+        return json_decode($json);
     }
-   
-    
+
+
     /**
      * Returns all the tickets
-     * @params $page
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @param int $page
+     * @return null|\stdClass
      */
     public function getAllTickets($page)
     {
-        $json = $this->restCall("/helpdesk/tickets.json?filter_name=all_tickets&page=$page", "GET");
+        $json = $this->restCall(
+            '/helpdesk/tickets.json?filter_name=all_tickets&page='.$page,
+            self::METHOD_GET
+        );
 
-        if ( empty($json) )
-            return false;
-
-        $json = json_decode($json);
-        return $json;
+        if (!$json)
+            return null;
+        return json_decode($json);
     }
-    
-    
+
+
     /**
      * Returns the Ticket, this method takes in the IDs for a ticket.
-     * @param $ticketId
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @param int $ticketId
+     * @return null|\stdClass
      */
     public function getSingleTicket($ticketId)
     {
-        $json = $this->restCall("/helpdesk/tickets/$ticketId.json", "GET");
-        
-        if ( empty($json) )
-            return false;
-
-        $json = json_decode($json);
-        return $json;
+        $json = $this->restCall(
+            '/helpdesk/tickets/'.$ticketId.'.json',
+            self::METHOD_GET
+        );
+        if (!$json)
+            return null;
+        return json_decodE($json);
     }
-    
-    
+
+
     /**
      * Returns all tickets from the user specified by email address
-     * @param $email 
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @param string $email
+     * @return null|\stdClass
      */
     public function getUserTickets($email)
     {
-        $json = $this->restCall("/helpdesk/tickets/user_ticket.json?email=$email", "GET");
-        
-        if( empty($json) )
-            return false;
-
-        $json = json_decode($json);
-        return $json;
+        $json = $this->restCall(
+            '/helpdesk/ticket/user_ticket.json?email='.$email,
+            self::METHOD_GET
+        );
+        if (!$json)
+            return null;
+        return json_decode($json);
     }
-    
-    
+
+
     /**
      * Returns tickets for a specific view
-     * @params $viewId
-     * @params $page
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @param int $viewId
+     * @param int $page
+     * @return null|\stdClass
      */
     public function getTicketView($viewId, $page)
     {
-        $json = $this->restCall("/helpdesk/tickets/view/$viewId?format=json&page=$page", "GET");
-
-        if( empty($json) )
-            return false;
-
-        $json = json_decode($json);
-        return $json;
+        $json = $this->restCall(
+            '/helpdesk/tickets/view/'.$viedId.'?format=json&page='.$page,
+            self::METHOD_GET
+        );
+        if (!$json)
+            return null;
+        return json_decode($json);
     }
-    
-    
+
+
     /**
      * Returns the fields available to helpdesk tickets
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @return null|\stdClass
      */
     public function getTicketFields()
     {
-        $json = $this->restCall("/ticket_fields.json", "GET");
-
-        if( empty($json) )
-            return false;
-
-        $json = json_decode($json);
-        return $json;
+        $json = $this->restCall(
+            '/ticket_fields.json',
+            self::METHOD_GET
+        );
+        if (!$json)
+            return null;
+        return json_decode($json);
     }
 
 
     /**
      * Returns the Survey for a given ticket, this method takes in the IDs for a ticket
-     * @param $ticketId 
-     * @return bool false if it doesn't exist, the object otherwise.
+     * @param int $ticketId
+     * @return null|\stdClass
      */
     public function getTicketSurvey($ticketId)
     {
-        $json = $this->restCall("/helpdesk/tickets/$ticketId/surveys.json", "GET");
-        
-        if( empty($json) )
-        {
-            return false;
-        }
-
-        $json = json_decode($json);
-        return $json;
+        $json = $this->restCall(
+            '/helpdesk/tickets/'.$ticketId.'/surveys.json',
+            self::METHOD_GET
+        );
+        if (!$json)
+            return null;
+        return json_decode($json);
     }
 }
