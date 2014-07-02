@@ -1,22 +1,55 @@
 # FreshDesk.com PHP API Wrapper
 
+The "composer-aware edition".
 
 ## Highlights
 
-### Provides Methods for Interacting with Tickets and Surveys
+Composer, obviously, but apart from that, this feature branch offers:
 
-1. 
+- Namespace support
+- An easily extendable "Rest" class
+- Will become 100% Object Oriented (no more passing around tons of strings of data)
+- Easy integration with MVC frameworks like Zend, Symfony2
+
 
 ## Ways To Improve
-1. Error handling is ok, but could be improved.
-2. Not 100% consistent with return types, check method comments.
+1. Still being work in progress: separation of concern is something that needs a lot of work
+2. Example child classes in the Freshdesk namespace (ie Tickets, for all ticket-related API calls)
+3. Better documentation
+4. Out of the box support for filters, statusses and the like (through class-constants)
+5. Unit-tests are a glaring omission ATM
 
 ## Usage
-1. Copy the FreshdeskRest.php into your project.
-2. Here's some code.
+1. Add this repo to your composer.json file
+
+```
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/EVODelavega/freshdesk-rest.git"
+        }
+    ],
+    "require": {
+        "EVODelavega/freshdesk-rest": "dev-feature/composer"
+    }
+}
+```
+
+2. Example usage (taken from the example.php file)
 
 ```
 <?php
-
-require_once("FreshdeskRest.php");
-$fd = new FreshdeskRest("yoursubdomain.freshdesk.com", "your_username", "your_password");
+use Freshdesk\Config\Connection,
+    Freshdesk\Rest;
+$fd = new Rest(
+    new Connection(
+        'https://<user>:<password>@<domain>'
+    )
+);
+$apiExample = new Rest(
+    new Connection(
+        'http://<API_KEY>:X@<domain>'
+    )
+);
+```
