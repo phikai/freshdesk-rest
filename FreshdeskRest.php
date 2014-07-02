@@ -82,6 +82,7 @@ class FreshdeskRest
             $this->password = $url['pass'];
             $this->username = $url['user'];
             $this->domain = $url['host'];
+            return $this;//constructor is done here, return here, to avoid having to write an else-block
         }
         //remove leading http[s]://, if present. strpos + substr === fast functions
         $i = strpos($domain, '://');
