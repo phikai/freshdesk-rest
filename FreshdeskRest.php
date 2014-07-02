@@ -58,11 +58,14 @@ class FreshdeskRest
     protected $debugLogs = array();
 
     /**
-     * Constructor
-     * @param $domain - yourname.freshdesk.com - but will also accept http://yourname.freshdesk.com/, etc.
+     * Constructor - Passing a full url is enough,but you can pass domain, user, pass and scheme separatly.
+     *               Note the order: scheme sits in between user & password, because API keys default
+     *               To the generic "X" password. If a password is provided, $scheme will become the password
+     * @param string $domain - yourname.freshdesk.com - but will also accept http://yourname.freshdesk.com/, etc.
                         pass "http[s]://user:pass@yourname.freshdesk.com" to set everything in one go
-     * @param $username String Can be your username or it can be the API Key.
-     * @param $password String Optional if you use API Key.
+     * @param string $username = null
+     * @param string $scheme = null
+     * @param string $password = null
      */
     public function __construct($domain, $username = null, $scheme = null,  $password = null)
     {
@@ -92,6 +95,11 @@ class FreshdeskRest
         while(($i = strpos($domain, '/')) && $i !== false)
             $domain = substr($domain, 0, $i);
 
+        if ($scheme && $password === null && $scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
+        {//$scheme is actually $password, added this not to break existing code
+            $password = $scheme
+            $scheme = null;
+        }
         if ($scheme)
             $this->scheme = $scheme;
         $this->domain = $domain;
