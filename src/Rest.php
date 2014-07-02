@@ -176,15 +176,12 @@ class Rest
 
     /**
      * Get the log data if calls were made in debug mode
-     * Unless you have a good reason not to, stick to the default behaviour
-     * take care of the log-output yourself!
-     * @param bool $return = true
-     * @return array|null
+     * @return array
      */
-    public function logDebugData($return = true)
+    public function logDebugData()
     {
         if (empty($this->debugLogs))
-            return '';//nothing to log
+            return array();//nothing to log
         //first line => headers
         $data = array(
             implode(
@@ -198,33 +195,7 @@ class Rest
         {//keep shifting from the array, until it's empty
             $data[]  = implode(' | ', $log);
         }
-        if ($return)
-            return $data;
-        //NOT DEFAULT BEHAVIOUR, only use in rare cases. This class should not generate output!
-        echo implode(
-            PHP_EOL,
-            $data
-        );
-    }
-
-    /**
-     * Set the scheme (using the class' constants, preferably)
-     * @param string $scheme
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public function setScheme($scheme)
-    {
-        if ($scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
-            throw new \InvalidArgumentException(
-                sprintf(
-                    '%s is not a valid scheme, use the %s::SCHEME_* constants',
-                    $scheme,
-                    __CLASS__
-                )
-            );
-        $this->scheme = $scheme;
-        return $this;
+        return $data;
     }
 
     /**

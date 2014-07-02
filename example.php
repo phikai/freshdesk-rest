@@ -7,10 +7,11 @@
 //autoloaded, in real-life, of course
 require 'src/Config/Connection.php';
 require 'src/Rest.php';
+require 'src/Ticket.php';
 //use the classes
 use Freshdesk\Config\Connection,
-    Freshdesk\Rest;
-
+    Freshdesk\Rest,
+    Freshdesk\Ticket;
 $url = 'http://API-key:X@domain.freshdesk.com';
 $conf = new Connection($url);
 $fd = new Rest($conf);
