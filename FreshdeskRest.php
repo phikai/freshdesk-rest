@@ -223,6 +223,39 @@ class FreshdeskRest
     }
 
     /**
+     * Get the log data if calls were made in debug mode
+     * Unless you have a good reason not to, stick to the default behaviour
+     * take care of the log-output yourself!
+     * @param bool $return = true
+     * @return array|null
+     */
+    public function logDebugData($return = true)
+    {
+        if (empty($this->debugLogs))
+            return '';//nothing to log
+        //first line => headers
+        $data = array(
+            implode(
+                ' | ',
+                array_keys(
+                    $this->debugLogs[0]
+                )
+            )
+        );
+        while ($log = array_shift($this->debugLogs))
+        {//keep shifting from the array, until it's empty
+            $data[]  = implode(' | ', $log);
+        }
+        if ($return)
+            return $data;
+        //NOT DEFAULT BEHAVIOUR, only use in rare cases. This class should not generate output!
+        echo implode(
+            PHP_EOL,
+            $data
+        );
+    }
+
+    /**
      * Set the scheme (using the class' constants, preferably)
      * @param string $scheme
      * @return $this
