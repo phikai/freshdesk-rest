@@ -6,7 +6,8 @@
  * Big thanks to Blake for building the initial API Object Methods
  */
 
-class FreshdeskRest {
+class FreshdeskRest
+{
 
     private $domain = '', $username = '', $password = '';
     private $lastHttpStatusCode = 200;
@@ -19,7 +20,8 @@ class FreshdeskRest {
      * @param $username String Can be your username or it can be the API Key.
      * @param $password String Optional if you use API Key.
      */
-    function __construct($domain, $username, $password = 'X') {
+    function __construct($domain, $username, $password = 'X')
+    {
 
         $strippedDomain = preg_replace('#^https?://#', '', $domain); // removes http:// or https://
         $strippedDomain = preg_replace('#/#', '', $strippedDomain); // get trailing slash
@@ -29,34 +31,38 @@ class FreshdeskRest {
         $this->username = $username;
     }
     
-        /**
+    /**
      * @param $urlMinusDomain - should start with /... example /solutions/categories.xml
      * @param $method - should be either GET, POST, PUT (and theoretically DELETE but that's untested).
      * @param string $postData - only specified if $method == POST or PUT
      * @param $debugMode {bool} optional - prints the request and response with headers
      * @return the raw response
      */
-    private function restCall($urlMinusDomain, $method, $postData = '',$debugMode=false) {
+    private function restCall($urlMinusDomain, $method, $postData = '',$debugMode=false)
+    {
         $url = "https://{$this->domain}$urlMinusDomain";
 
-		$header[] = "Content-type: application/json";
+        $header[] = "Content-type: application/json";
         $ch = curl_init ($url);
 
-        if( $method == "POST") {
-            if( empty($postData) ){
+        if ($method == "POST")
+        {
+            if( empty($postData) )
                 $header[] = "Content-length: 0"; // <-- seems to be unneccessary to specify this... curl does it automatically
-            }
             curl_setopt ($ch, CURLOPT_POST, true);
             curl_setopt ($ch, CURLOPT_POSTFIELDS, $postData);
         }
-        else if( $method == "PUT" ) {
+        else if( $method == "PUT" )
+        {
             curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "PUT" );
             curl_setopt ($ch, CURLOPT_POSTFIELDS, $postData);
         }
-        else if( $method == "DELETE" ) {
+        else if( $method == "DELETE" )
+        {
             curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "DELETE" ); // UNTESTED!
         }
-        else {
+        else
+        {
             curl_setopt ($ch, CURLOPT_POST, false);
         }
 
@@ -67,12 +73,14 @@ class FreshdeskRest {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
-        if( !empty($this->proxyServer) ) {
+        if ( !empty($this->proxyServer) )
+        {
             curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:8888');
         }
 
         $verbose = ''; // set later...
-        if( $debugMode ) {
+        if ( $debugMode )
+        {
             // CURLOPT_VERBOSE: TRUE to output verbose information. Writes output to STDERR,
             // or the file specified using CURLOPT_STDERR.
             curl_setopt($ch, CURLOPT_VERBOSE, true);
@@ -82,7 +90,8 @@ class FreshdeskRest {
 
         $httpResponse = curl_exec ($ch);
 
-        if( $debugMode ) {
+        if ( $debugMode )
+        {
             !rewind($verbose);
             $verboseLog = stream_get_contents($verbose);
             print $verboseLog;
@@ -91,7 +100,8 @@ class FreshdeskRest {
 
         $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         //curl_close($http);
-        if( !preg_match( '/2\d\d/', $http_status ) ) {
+        if( !preg_match( '/2\d\d/', $http_status ) )
+        {
             //print "ERROR: HTTP Status Code == " . $http_status . " (302 also isn't an error)\n";
         }
 
@@ -105,7 +115,8 @@ class FreshdeskRest {
      * Returns the HTTP status code of the last call, useful for error checking.
      * @return int
      */
-    public function getLastHttpStatus() {
+    public function getLastHttpStatus()
+    {
         return $this->lastHttpStatusCode;
     }
 
@@ -113,7 +124,8 @@ class FreshdeskRest {
      * Returns the HTTP Response Text of the last curl call, useful for error checking.
      * @return int
      */
-    public function getLastHttpResponseText() {
+    public function getLastHttpResponseText()
+    {
         return $this->lastHttpResponseText;
     }
 
@@ -131,50 +143,50 @@ class FreshdeskRest {
     
     /**
      * Returns all the open tickets of the API user's credentials used for the request
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getApiUserTickets() {
+    public function getApiUserTickets()
+    {
         $json = $this->restCall("/helpdesk/tickets.json", "GET");
 
-        if( empty($json) ) {
-            return FALSE;
-        }
+        if( empty($json) )
+            return false;
 
-		$json = json_decode($json);
-		return $json;
+        $json = json_decode($json);
+        return $json;
     }
    
     
     /**
      * Returns all the tickets
      * @params $page
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getAllTickets($page) {
+    public function getAllTickets($page)
+    {
         $json = $this->restCall("/helpdesk/tickets.json?filter_name=all_tickets&page=$page", "GET");
 
-        if( empty($json) ) {
-            return FALSE;
-        }
+        if ( empty($json) )
+            return false;
 
-		$json = json_decode($json);
-		return $json;
+        $json = json_decode($json);
+        return $json;
     }
     
     
     /**
      * Returns the Ticket, this method takes in the IDs for a ticket.
      * @param $ticketId
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getSingleTicket($ticketId) {
+    public function getSingleTicket($ticketId)
+    {
         $json = $this->restCall("/helpdesk/tickets/$ticketId.json", "GET");
         
-        if( empty($json) ) {
-            return FALSE;
-        }
+        if ( empty($json) )
+            return false;
 
-		$json = json_decode($json);
+        $json = json_decode($json);
         return $json;
     }
     
@@ -182,17 +194,17 @@ class FreshdeskRest {
     /**
      * Returns all tickets from the user specified by email address
      * @param $email 
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getUserTickets($email) {
+    public function getUserTickets($email)
+    {
         $json = $this->restCall("/helpdesk/tickets/user_ticket.json?email=$email", "GET");
         
-        if( empty($json) ) {
-            return FALSE;
-        }
+        if( empty($json) )
+            return false;
 
-		$json = json_decode($json);
-		return $json;
+        $json = json_decode($json);
+        return $json;
     }
     
     
@@ -200,50 +212,51 @@ class FreshdeskRest {
      * Returns tickets for a specific view
      * @params $viewId
      * @params $page
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getTicketView($viewId, $page) {
+    public function getTicketView($viewId, $page)
+    {
         $json = $this->restCall("/helpdesk/tickets/view/$viewId?format=json&page=$page", "GET");
 
-        if( empty($json) ) {
-            return FALSE;
-        }
+        if( empty($json) )
+            return false;
 
-		$json = json_decode($json);
-		return $json;
+        $json = json_decode($json);
+        return $json;
     }
     
     
     /**
      * Returns the fields available to helpdesk tickets
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getTicketFields() {
+    public function getTicketFields()
+    {
         $json = $this->restCall("/ticket_fields.json", "GET");
 
-        if( empty($json) ) {
-            return FALSE;
-        }
+        if( empty($json) )
+            return false;
 
-		$json = json_decode($json);
-		return $json;
+        $json = json_decode($json);
+        return $json;
     }
 
 
     /**
      * Returns the Survey for a given ticket, this method takes in the IDs for a ticket
      * @param $ticketId 
-     * @return bool FALSE if it doesn't exist, the object otherwise.
+     * @return bool false if it doesn't exist, the object otherwise.
      */
-    public function getTicketSurvey($ticketId) {
+    public function getTicketSurvey($ticketId)
+    {
         $json = $this->restCall("/helpdesk/tickets/$ticketId/surveys.json", "GET");
         
-        if( empty($json) ) {
-            return FALSE;
+        if( empty($json) )
+        {
+            return false;
         }
 
-		$json = json_decode($json);
-		return $json;
+        $json = json_decode($json);
+        return $json;
     }
-     
 }
