@@ -63,7 +63,7 @@ class Ticket
                         )
                     )
                 );
-            if (method_exists($setter, $this))
+            if (method_exists($this, $setter))
                 $this->{$setter}($v);
         }
     }

@@ -2,7 +2,8 @@
 namespace Freshdesk;
 
 use Freshdesk\Model\Ticket as TicketM,
-    \InvalidArgumentException;
+    \InvalidArgumentException,
+    \RuntimeException;
 
 class Ticket extends Rest
 {
@@ -137,6 +138,39 @@ class Ticket extends Rest
                 $return[] = $tickets[$i]->display_id;
         }
         return $return;
+    }
+
+    /**
+     * Create new ticket, returns model after setting createdAt property
+     * @param TicketM $ticket
+     * @return \Freshdesk\Model\Ticket
+     * @throws \RuntimeException
+     */
+    public function createNewTicket(TicketM $ticket)
+    {
+        $data = $ticket->toJsonData();
+        $response = $this->restCall(
+            '/helpdesk/tickets.json',
+            self::METHOD_POST,
+            $data
+        );
+        if (!$response)
+            throw new RuntimeException(
+                sprintf(
+                    'Failed to create ticket with data: %s',
+                    $data
+                )
+            );
+        $json = json_decode(
+            $response
+        );
+        $ticket->setCreatedAt(
+            new \DateTime(
+                $json->created_at
+            )
+        );
+        return $json;
+        return $ticket;
     }
 
 }

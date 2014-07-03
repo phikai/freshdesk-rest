@@ -120,14 +120,16 @@ class Rest
         $ch = curl_init($url);
         if (!is_resource($ch))
         {
-            fclose($opts[\CURLOPT_STDERR]);//close stream
+            if ($debugMode)
+                fclose($opts[\CURLOPT_STDERR]);//close stream
             throw new \RuntimeException(
                 'Could not init curl request'
             );
         }
         if (!curl_setopt_array($ch, $opts))
         {
-            fclose($opts[\CURLOPT_STDERR]);
+            if ($debugMode)
+                fclose($opts[\CURLOPT_STDERR]);
             throw new \RuntimeException('Could not set curl options');
         }
 
@@ -140,7 +142,6 @@ class Rest
         {
             if (!$debugMode)
             {
-                fclose($opts[\CURLOPT_STDERR]);//close stream
                 curl_close($ch);//close curl
                 throw new \RuntimeException(
                     sprintf(
