@@ -36,7 +36,18 @@ Add this repo to your composer.json file
     }
 }
 ```
+If you are going to use this wrapper to create new tickets in freshdesk, there is a postUpdate/postInstall script you can use to set the cc-email constant in the Freshdesk\Model\Ticket class. To automatically configure this constant, add the following to your _scripts_ section in the composer.json file:
 
+```json
+"scripts": {
+    "post-install-cmd": [
+        "Freshdesk\Config\Composer::postUpdate"
+    ],
+    "post-update-cmd": [
+        "Freshdesk\Config\Composer::postUpdate"
+    ]
+}
+```
 Example usage (taken from the example.php file)
 
 ```php
