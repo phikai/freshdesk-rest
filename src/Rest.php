@@ -54,7 +54,9 @@ class Rest
      * @param $method - should be either GET, POST, PUT (and theoretically DELETE but that's untested).
      * @param string $postData - only specified if $method == POST or PUT
      * @param $debugMode {bool} optional - prints the request and response with headers
-     * @return the raw response
+     * @return string
+     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      */
     protected function restCall($urlMinusDomain, $method, $postData = '',$debugMode=false)
     {
@@ -63,10 +65,6 @@ class Rest
         $url = $this->config->getScheme().
                 $this->config->getDomain().
                 $urlMinusDomain;
-
-        $header = array(
-            "Content-type: application/json"
-        );
 
         $opts = array(
             \CURLOPT_USERPWD        => $this->config->getUsername().':'.$this->config->getPassword(),
@@ -92,12 +90,16 @@ class Rest
             case self::METHOD_POST:
                 if (empty($postData))
                     $opts[\CURLOPT_HTTPHEADER][] = 'Content-length: 0';
+                //According to the initial wrapper, length should is not required here...
+                //else
+                    //$opts[\CURLOPT_HTTPHEADER][] = 'Content-length: '.strlen($postData);
                 $opts[\CURLOPT_POST] = true;
                 $opts[\CURLOPT_POSTFIELDS] = $postData;
                 break;
             case self::METHOD_PUT:
                 $opts[\CURLOPT_CUSTOMREQUEST] =  'PUT';
                 $opts[\CURLOPT_POSTFIELDS] = $postData;
+                break;
             case self::METHOD_DEL:
                 $opts[\CURLOPT_CUSTOMREQUEST] = 'DELETE';
                 break;
@@ -146,7 +148,7 @@ class Rest
                         $method,
                         $url,
                         $httpCode,
-                        $httpRespnse
+                        $httpResponse
                     )
                 );
             }
@@ -306,7 +308,7 @@ class Rest
     public function getTicketView($viewId, $page)
     {
         $json = $this->restCall(
-            '/helpdesk/tickets/view/'.$viedId.'?format=json&page='.$page,
+            '/helpdesk/tickets/view/'.$viewId.'?format=json&page='.$page,
             self::METHOD_GET
         );
         if (!$json)

@@ -97,7 +97,7 @@ class FreshdeskRest
 
         if ($scheme && $password === null && $scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
         {//$scheme is actually $password, added this not to break existing code
-            $password = $scheme
+            $password = $scheme;
             $scheme = null;
         }
         if ($scheme)
@@ -119,10 +119,6 @@ class FreshdeskRest
         if ($urlMinusDomain{0} !== '/')
             $urlMinusDomain = '/'.$urlMinusDomain;
         $url = $this->scheme.$this->domain.$urlMinusDomain;
-
-        $header = array(
-            "Content-type: application/json"
-        );
 
         $opts = array(
             \CURLOPT_USERPWD        => $this->username.':'.$this->password,
@@ -202,7 +198,7 @@ class FreshdeskRest
                         $method,
                         $url,
                         $httpCode,
-                        $httpRespnse
+                        $httpResponse
                     )
                 );
             }
@@ -225,7 +221,7 @@ class FreshdeskRest
                 );
             fclose($opts[\CURLOPT_STDERR]);
         }
-        curl_close($http);
+        curl_close($ch);
 
         return $httpResponse;
     }
@@ -391,7 +387,7 @@ class FreshdeskRest
     public function getTicketView($viewId, $page)
     {
         $json = $this->restCall(
-            '/helpdesk/tickets/view/'.$viedId.'?format=json&page='.$page,
+            '/helpdesk/tickets/view/'.$viewId.'?format=json&page='.$page,
             self::METHOD_GET
         );
         if (!$json)

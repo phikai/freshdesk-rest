@@ -3,6 +3,10 @@ namespace Freshdesk\Config;
 
 use \InvalidArgumentException;
 
+/**
+ * Class Connection
+ * @package Freshdesk\Config
+ */
 class Connection
 {
     const SCHEME_HTTP = 'http://';
@@ -34,10 +38,22 @@ class Connection
     protected $baseUrl = null;
 
     /**
+     * @var string
+     */
+    protected $loginString = null;
+
+    /**
+     * @var bool false
+     */
+    protected $debug = false;
+
+    /**
      * Constructor, expects fully-qualified url
      * @param string $url
+     * @param bool $debug = false
+     * @throws \InvalidArgumentException
      */
-    public function __construct($url)
+    public function __construct($url, $debug = false)
     {
         if (!preg_match('/^https?:\/\/[^:]+:[^@]+@.+$/', $url))
             throw new InvalidArgumentException(
@@ -53,6 +69,25 @@ class Connection
         $this->username = $data['user'];
         $this->password = $data['pass'];
         $this->domain = $data['host'];
+        $this->debug = $debug;
+    }
+
+    /**
+     * @param string $url
+     * @param bool $debug = false
+     * @return $this
+     */
+    public function setByUrl($url, $debug = false)
+    {
+        $data = parse_url($url);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $this->setPassword($data['pass'])
+            ->setUserName($data['user'])
+            ->setPassword($data['pass'])
+            ->setDomain($data['host'])
+            ->setScheme($data['scheme']);
+        $this->debug = $debug;
+        return $this;
     }
 
     /**
@@ -93,7 +128,7 @@ class Connection
      */
     public function setPassword($pass)
     {
-        $this->baseUrl = null;
+        $this->loginString = $this->baseUrl = null;
         $this->password = $pass === null ? 'X' : $pass;
         return $this;
     }
@@ -112,8 +147,7 @@ class Connection
      */
     public function setUserName($user)
     {
-        if ($this->username)
-            $this->baseUrl = null;//force re-load of baseUrl
+        $this->loginString = $this->baseUrl = null;//force re-load of baseUrl
         $this->username = $user;
         return $this;
     }
@@ -142,7 +176,7 @@ class Connection
                     __CLASS__
                 )
             );
-        $this->baseUrl = null;
+        $this->loginString = $this->baseUrl = null;
         $this->scheme = $scheme;
         return $this;
     }
@@ -153,6 +187,38 @@ class Connection
     public function getScheme()
     {
         return $this->scheme;
+    }
+
+    /**
+     * @param bool $switch
+     * @return $this
+     */
+    public function setDebug($switch = false)
+    {
+        $this->debug = !!$switch;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getDebug()
+    {
+        return $this->debug;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoginString()
+    {
+        if ($this->loginString === null)
+            $this->loginString = sprintf(
+                '%s:%s',
+                $this->username,
+                $this->password
+            );
+        return $this->loginString;
     }
 
     /**

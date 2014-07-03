@@ -1,7 +1,8 @@
 <?php
 namespace Freshdesk;
 
-use \InvalidArgumentException;
+use Freshdesk\Model\Ticket as TicketM,
+    \InvalidArgumentException;
 
 class Ticket extends Rest
 {
@@ -15,11 +16,22 @@ class Ticket extends Rest
     const FILTER_SPAM = 'spam';
     const FILTER_DELETED = 'deleted';
 
-    const STATUS_ALL = 1;
-    const STATUS_OPEN = 2;
-    const STATUS_PENDING = 3;
-    const STATUS_RESOLVED = 4;
-    const STATUS_CLOSED = 5;
+
+    /**
+     * Returns formatted url
+     * @param string $email
+     * @param string $filter = self::FILTER_ALL
+     * @return string
+     */
+    protected function getTicketUrl($email, $filter = self::FILTER_ALL)
+    {
+        return sprintf(
+            '/helpdesk/tickets.json?email=%s&filter_name=%s',
+            $email,
+            $filter
+        );
+    }
+
     /**
      * Get all tickets from user (based on email)
      * @param string $email
@@ -36,7 +48,7 @@ class Ticket extends Rest
                 )
             );
         $json = $this->restCall(
-            '/helpdesk/tickets.json?email='.$email.'&filter_name=all_tickets',
+            $this->getTicketUrl($email),
             self::METHOD_GET
         );
         if (!$json)
@@ -44,7 +56,12 @@ class Ticket extends Rest
         return json_decode($json);
     }
 
-    public function getTicketIds($email, $status = self::STATUS_ALL)
+    /**
+     * @param $email
+     * @param int $status
+     * @return array|null
+     */
+    public function getTicketIds($email, $status = TicketM::STATUS_ALL)
     {
         $tickets = $this->getTicketsByEmail($email);
         if (!$tickets)
@@ -52,29 +69,74 @@ class Ticket extends Rest
         $return = array();
         for ($i=0, $j=count($tickets);$i<$j;++$i)
         {
-            if ($status === self::STATUS_ALL || $tickets[$i]->status == $status)
+            if ($status === TicketM::STATUS_ALL || $tickets[$i]->status == $status)
                 $return[] = $tickets[$i]->display_id;
         }
         return $return;
     }
 
+    /**
+     * Get open tickets for $email
+     * @param string $email
+     * @return null|\stdClass|array
+     * @throws \InvalidArgumentException
+     */
+    public function getOpenTickets($email)
+    {
+        if (!filter_var($email, \FILTER_VALIDATE_EMAIL))
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s is not a valid email address',
+                    $email
+                )
+            );
+        $json = $this->restCall(
+            $this->getTicketUrl(
+                $email,
+                self::FILTER_OPEN
+            ),
+            self::METHOD_GET
+        );
+        if (!$json)
+            return null;
+        return json_decode(
+            $json
+        );
+    }
+
+    /**
+     * Get tickets that are neither closed or resolved
+     * @param string $email
+     * @return null|array
+     */
     public function getActiveTickets($email)
     {
         $tickets = $this->getTicketsByEmail($email);
         if (!$tickets)
-            return array();
+            return null;
         $return = array();
         for ($i=0, $j=count($tickets);$i<$j;++$i)
         {
-            if ($tickets[$i]->status < self::STATUS_RESOLVED)
+            if ($tickets[$i]->status < TicketM::STATUS_RESOLVED)
                 $return[] = $tickets[$i];
         }
         return $return;
     }
 
+    /**
+     * @param string $email
+     * @return array<\stdClass>
+     */
     public function getResolvedTickets($email)
     {
-        //
+        $tickets = $this->getTicketsByEmail($email);
+        $return = array();
+        for ($i=0, $j=count($tickets);$i<$j;++$i)
+        {
+            if ($tickets[$i]->status === TicketM::STATUS_RESOLVED)
+                $return[] = $tickets[$i]->display_id;
+        }
+        return $return;
     }
 
 }

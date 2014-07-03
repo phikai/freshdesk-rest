@@ -7,7 +7,7 @@ The "composer-aware edition".
 Composer, obviously, but apart from that, this feature branch offers:
 
 - Namespace support
-- An easily extendable "Rest" class
+- A "Rest" class, that can be extended easily
 - Will become 100% Object Oriented (no more passing around tons of strings of data)
 - Easy integration with MVC frameworks like Zend, Symfony2
 
@@ -16,8 +16,9 @@ Composer, obviously, but apart from that, this feature branch offers:
 1. Still being work in progress: separation of concern is something that needs a lot of work
 2. Example child classes in the Freshdesk namespace (ie Tickets, for all ticket-related API calls)
 3. Better documentation
-4. Out of the box support for filters, statusses and the like (through class-constants)
+4. Out of the box support for filters, statuses and the like (through class-constants)
 5. Unit-tests are a glaring omission ATM
+6. Possibly add some data-models for tickets, customers, users and the like...
 
 ## Usage
 Add this repo to your composer.json file
@@ -41,7 +42,7 @@ Example usage (taken from the example.php file)
 ```php
 <?php
 use Freshdesk\Config\Connection,
-    Freshdesk\Rest;
+    Freshdesk\Rest;// for backwards compatibility with existing code, use alias: use Freshdesk\Rest as FreshdeskRest;
 $fd = new Rest(
     new Connection(
         'https://<user>:<password>@<domain>'
