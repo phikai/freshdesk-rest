@@ -164,12 +164,12 @@ class Ticket extends Rest
         $json = json_decode(
             $response
         );
-        $ticket->setCreatedAt(
-            new \DateTime(
-                $json->created_at
-            )
-        );
-        return $json;
+        if (property_exists($json, 'created_at'))
+            $ticket->setCreatedAt(
+                new \DateTime(
+                    $json->created_at
+                )
+            );
         return $ticket;
     }
 

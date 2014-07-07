@@ -198,7 +198,7 @@ class Ticket
             array(
                 'helpdesk_ticket'   => array(
                     'description'   => $this->description,
-                    'subkect'       => $this->subject,
+                    'subject'       => $this->subject,
                     'email'         => $this->email,
                     'priority'      => $this->priority,
                     'status'        => $this->status
