@@ -5,9 +5,9 @@
  */
 //Require the FreshDesk API Library
 //autoloaded, in real-life, of course
-require 'src/Config/Connection.php';
-require 'src/Rest.php';
-require 'src/Ticket.php';
+require 'src/Freshdesk/Config/Connection.php';
+require 'src/Freshdesk/Rest.php';
+require 'src/Freshdesk/Ticket.php';
 //use the classes
 use Freshdesk\Config\Connection,
     Freshdesk\Rest,
