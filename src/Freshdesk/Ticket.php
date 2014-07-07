@@ -164,13 +164,16 @@ class Ticket extends Rest
         $json = json_decode(
             $response
         );
-        if (property_exists($json, 'created_at'))
-            $ticket->setCreatedAt(
-                new \DateTime(
-                    $json->created_at
-                )
-            );
-        return $ticket;
+        //update ticket model, set ids and created timestamp
+        return $ticket->setId(
+            $json->helpdesk_ticket->id
+        )->setDisplayId(
+            $json->helpdesk_ticket->display_id
+        )->setCreatedAt(
+            new \DateTime(
+                $json->helpdesk_ticket->created_at
+            )
+        );
     }
 
 }

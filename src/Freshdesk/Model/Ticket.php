@@ -17,6 +17,16 @@ class Ticket
     const CC_EMAIL = '<your cc_email here>';
 
     /**
+     * @var int
+     */
+    protected $id = null;
+
+    /**
+     * @var int
+     */
+    protected $displayId = null;
+
+    /**
      * @var string
      */
     protected $description = null;
@@ -164,6 +174,42 @@ class Ticket
     public function getStatus()
     {
         return $this->status;
+    }
+
+    /**
+     * @param int $id
+     * @return $this
+     */
+    public function setId($id)
+    {
+        $this->id = $id === null ? null : (int) $id;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param int $dId
+     * @return $this
+     */
+    public function setDisplayId($dId)
+    {
+        $this->displayId = $dId === null ? null : (int) $dId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDisplayId()
+    {
+        return $this->displayId;
     }
 
     /**
