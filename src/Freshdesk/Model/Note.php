@@ -1,13 +1,12 @@
 <?php
 
 namespace Freshdesk\Model;
-use \DateTime,
-    Freshdesk\Model\Ticket,
-    \stdClass,
-    \Traversable;
+use \DateTime;
 
-class Note
+class Note extends Base
 {
+    const RESPONSE_KEY = 'note';
+
     /**
      * @var \Freshdesk\Model\Ticket
      */
@@ -293,7 +292,8 @@ class Note
     {
         return json_encode(
             array(
-                'helpdesk_note'   => array(
+                //note has oddity in used response key
+                'helpdesk_'.self::RESPONSE_KEY   => array(
                     'body'      => $this->body,
                     'private'   => $this->private
                 )
