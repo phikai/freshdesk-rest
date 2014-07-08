@@ -74,7 +74,7 @@ class Rest
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_HTTPAUTH       => \CURLAUTH_BASIC,
             \CURLOPT_SSL_VERIFYHOST => 0,
-            \CURLOPT_SSL_VERIFYPEER  => 0
+            \CURLOPT_SSL_VERIFYPEER => 0
         );
         if ($this->proxyServer)
             $opts[\CURLOPT_PROXY] = $this->proxyServer;

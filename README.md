@@ -41,10 +41,10 @@ If you are going to use this wrapper to create new tickets in freshdesk, there i
 ```json
 "scripts": {
     "post-install-cmd": [
-        "Freshdesk\Config\Composer::postUpdate"
+        "Freshdesk\\Config\\Composer::postUpdate"
     ],
     "post-update-cmd": [
-        "Freshdesk\Config\Composer::postUpdate"
+        "Freshdesk\\Config\\Composer::postUpdate"
     ]
 }
 ```

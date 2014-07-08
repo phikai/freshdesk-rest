@@ -18,6 +18,9 @@ class Composer
                 'Set cc_emails to use in Tickets (when creating new tickets)? [y/N]',
                 'N'
             );
+            $path = realpath(
+                __DIR__.'../Model/Ticket.php'
+            );
             switch ($r)
             {
                 case 'N':
@@ -26,7 +29,7 @@ class Composer
                     break;
                 case 'Y':
                 case 'y':
-                    $contents = file_get_contents('../Model/Ticket.php');
+                    $contents = file_get_contents($path);
                     $cc = $io->ask('Value for CC_EMAILS', '');
                     $cc = preg_replace(
                         '/(?<!\\\\)\'/',
@@ -34,7 +37,7 @@ class Composer
                         $cc
                     );
                     file_put_contents(
-                        '../Model/Ticket.php',
+                        $path,
                         str_replace(
                             '<your cc_email here>',
                             $cc,
