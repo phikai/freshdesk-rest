@@ -7,8 +7,10 @@ use \DateTime,
     \Traversable,
     \stdClass;
 
-class Ticket
+class Ticket extends Base
 {
+
+    const RESPONSE_KEY = 'helpdesk_ticket';
 
     const STATUS_ALL = 1;
     const STATUS_OPEN = 2;
@@ -64,113 +66,6 @@ class Ticket
     protected $toDateTime = array(
         'setCreatedAt'
     );
-
-    /**
-     * $data should be an array, an instance of stdClass
-     * OR an object that implements the \Traversable interface
-     * @param null|array|\stdClass|\Traversable $data = null
-     * @throws \InvalidArgumentException
-     */
-    public function __construct($data = null)
-    {
-        if ($data === null)
-            return $this;
-        if (!$data instanceof Traversable && !$data instanceof \stdClass && !is_array($data))
-            throw new InvalidArgumentException(
-                sprintf(
-                    '%s::%s expects no arguments, or an array, stdClass instance or Traversable object',
-                    __CLASS__,
-                    __FUNCTION__
-                )
-            );
-        //allow for json responses to be passed directly
-        if ($data instanceof stdClass)
-            return $this->setByObject($data);
-        $set = array();
-        foreach ($data as $k => $v)
-            $set[$k] = $v;//create array
-        return $this->setByObject(
-            (object) $set//cast to stdClass
-        );
-    }
-
-    /**
-     * Non-final, as extended models might implement specific methods
-     * used in child classes of related models...
-     * ATM, this is a copy-paste version of the setByObj function, though
-     * @param Traversable $obj
-     * @return $this
-     */
-    public function setByTraversable(Traversable $obj)
-    {
-        foreach ($obj as $p => $v)
-        {
-            $setter = 'set'.implode(
-                    '',
-                    array_map(
-                        'ucfirst',
-                        explode(
-                            '_',
-                            $p
-                        )
-                    )
-                );
-            if (method_exists($this, $setter))
-                $this->{$setter}(
-                    in_array($setter, $this->toDateTime) ? new DateTime($v) : $v
-                );
-        }
-        return $this;
-    }
-
-    /**
-     * Quick alias, to avoid having to juggle data outside of this class
-     * @param array $data
-     * @return $this
-     */
-    final public function setByArray(array $data)
-    {
-        return $this->setByObject(
-            (object) $data
-        );
-    }
-
-    /**
-     * @param \stdClass $obj
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    final public function setByObject(\stdClass $obj)
-    {
-        if (property_exists($obj, 'errors'))
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Failed to set %s, data was error response: %s',
-                    __CLASS__,
-                    $obj->errors->error
-                )
-            );
-        if (property_exists($obj, 'helpdesk_ticket'))
-            $obj = $obj->helpdesk_ticket;
-        foreach ($obj as $p => $v)
-        {
-            $setter = 'set'.implode(
-                '',
-                array_map(
-                    'ucfirst',
-                    explode(
-                        '_',
-                        $p
-                    )
-                )
-            );
-            if (method_exists($this, $setter))
-                $this->{$setter}(
-                    in_array($setter, $this->toDateTime) ? new DateTime($v) : $v
-                );
-        }
-        return $this;
-    }
 
     /**
      * @param string $desc
@@ -336,7 +231,7 @@ class Ticket
     {
         return json_encode(
             array(
-                'helpdesk_ticket'   => array(
+                self::RESPONSE_KEY   => array(
                     'description'   => $this->description,
                     'subject'       => $this->subject,
                     'email'         => $this->email,

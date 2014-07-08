@@ -160,7 +160,7 @@ class Ticket extends Rest
                 )
             );
         if ($model)
-            return $model->setByObject(
+            return $model->setAll(
                 $ticket->helpdesk_ticket
             );
         return new TicketM($ticket->helpdesk_ticket);
@@ -244,7 +244,7 @@ class Ticket extends Rest
             $response
         );
         //update ticket model, set ids and created timestamp
-        return $ticket->setByObject(
+        return $ticket->setAll(
             $json->helpdesk_ticket
         );
     }
