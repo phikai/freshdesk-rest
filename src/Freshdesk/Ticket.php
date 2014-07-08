@@ -250,6 +250,12 @@ class Ticket extends Rest
         );
     }
 
+    /**
+     * Add note to ticket, ticket model is expected to be set on Note model
+     * @param Note $note
+     * @return Note
+     * @throws \RuntimeException
+     */
     public function addNoteToTicket(Note $note)
     {
         $url = sprintf(
