@@ -135,6 +135,56 @@ class Ticket extends Rest
     }
 
     /**
+     * @param int $id
+     * @param TicketM $model = null
+     * @return TicketM
+     * @throws \RuntimeException
+     */
+    public function getTicketById($id, TicketM $model = null)
+    {
+        $ticket = json_decode(
+            $this->restCall(
+                sprintf(
+                    '/helpdesk/tickets/%s.json',
+                    (int) $id
+                ),
+                self::METHOD_GET
+            )
+        );
+        if (property_exists($ticket, 'errors'))
+            throw new RuntimeException(
+                sprintf(
+                    'Ticket %d not found: %s',
+                    $id,
+                    $ticket->errors->error
+                )
+            );
+        if ($model)
+            return $model->setByObject(
+                $ticket->helpdesk_ticket
+            );
+        return new TicketM($ticket->helpdesk_ticket);
+    }
+
+    /**
+     * get "pure" json data
+     * @param TicketM $model
+     * @return \stdClass
+     */
+    public function getRawTicket(TicketM $model)
+    {
+        return json_decode(
+            $this->restCall(
+                sprintf(
+                    '/helpdesk/tickets/%s.json',
+                    $model->getDisplayId()
+                ),
+                self::METHOD_GET
+            )
+        );
+    }
+
+    /**
      * Get tickets that are neither closed or resolved
      * @param string $email
      * @return null|array
