@@ -4,7 +4,8 @@ namespace Freshdesk\Model;
 
 use \DateTime,
     \InvalidArgumentException,
-    \Traversable;
+    \Traversable,
+    \stdClass;
 
 class Ticket
 {
@@ -82,6 +83,9 @@ class Ticket
                     __FUNCTION__
                 )
             );
+        //allow for json responses to be passed directly
+        if ($data instanceof stdClass)
+            return $this->setByObject($data);
         $set = array();
         foreach ($data as $k => $v)
             $set[$k] = $v;//create array
@@ -134,9 +138,20 @@ class Ticket
     /**
      * @param \stdClass $obj
      * @return $this
+     * @throws \InvalidArgumentException
      */
     final public function setByObject(\stdClass $obj)
     {
+        if (property_exists($obj, 'errors'))
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Failed to set %s, data was error response: %s',
+                    __CLASS__,
+                    $obj->errors->error
+                )
+            );
+        if (property_exists($obj, 'helpdesk_ticket'))
+            $obj = $obj->helpdesk_ticket;
         foreach ($obj as $p => $v)
         {
             $setter = 'set'.implode(
