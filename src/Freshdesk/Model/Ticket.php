@@ -3,7 +3,8 @@
 namespace Freshdesk\Model;
 
 use \DateTime,
-    \InvalidArgumentException;
+    \InvalidArgumentException,
+    \Traversable;
 
 class Ticket
 {
@@ -57,11 +58,48 @@ class Ticket
     protected $createdAt = null;
 
     /**
-     * @param array $data
+     * @var array - add all setters that require a DateTime instsance as argument
      */
-    public function __construct(array $data)
+    protected $toDateTime = array(
+        'setCreatedAt'
+    );
+
+    /**
+     * $data should be an array, an instance of stdClass
+     * OR an object that implements the \Traversable interface
+     * @param null|array|\stdClass|\Traversable $data = null
+     * @throws \InvalidArgumentException
+     */
+    public function __construct($data = null)
     {
+        if ($data === null)
+            return $this;
+        if (!$data instanceof Traversable && !$data instanceof \stdClass && !is_array($data))
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s::%s expects no arguments, or an array, stdClass instance or Traversable object',
+                    __CLASS__,
+                    __FUNCTION__
+                )
+            );
+        $set = array();
         foreach ($data as $k => $v)
+            $set[$k] = $v;//create array
+        return $this->setByObject(
+            (object) $set//cast to stdClass
+        );
+    }
+
+    /**
+     * Non-final, as extended models might implement specific methods
+     * used in child classes of related models...
+     * ATM, this is a copy-paste version of the setByObj function, though
+     * @param Traversable $obj
+     * @return $this
+     */
+    public function setByTraversable(Traversable $obj)
+    {
+        foreach ($obj as $p => $v)
         {
             $setter = 'set'.implode(
                     '',
@@ -69,13 +107,54 @@ class Ticket
                         'ucfirst',
                         explode(
                             '_',
-                            $k
+                            $p
                         )
                     )
                 );
             if (method_exists($this, $setter))
-                $this->{$setter}($v);
+                $this->{$setter}(
+                    in_array($setter, $this->toDateTime) ? new DateTime($v) : $v
+                );
         }
+        return $this;
+    }
+
+    /**
+     * Quick alias, to avoid having to juggle data outside of this class
+     * @param array $data
+     * @return $this
+     */
+    final public function setByArray(array $data)
+    {
+        return $this->setByObject(
+            (object) $data
+        );
+    }
+
+    /**
+     * @param \stdClass $obj
+     * @return $this
+     */
+    final public function setByObject(\stdClass $obj)
+    {
+        foreach ($obj as $p => $v)
+        {
+            $setter = 'set'.implode(
+                '',
+                array_map(
+                    'ucfirst',
+                    explode(
+                        '_',
+                        $p
+                    )
+                )
+            );
+            if (method_exists($this, $setter))
+                $this->{$setter}(
+                    in_array($setter, $this->toDateTime) ? new DateTime($v) : $v
+                );
+        }
+        return $this;
     }
 
     /**

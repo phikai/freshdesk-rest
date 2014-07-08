@@ -106,6 +106,35 @@ class Ticket extends Rest
     }
 
     /**
+     * Get tickets in view, specify page, defaults to 0 === get all pages
+     * @param int $viewId
+     * @param int $page = 0
+     * @return array
+     */
+    public function getTicketsByView($viewId, $page = 0)
+    {
+        if ($page === 0)
+        {
+            $data = array();
+            $current = 1;
+            while ($tickets = $this->getTicketsByView($viewId, $current))
+                $data[$current++] = $tickets;
+            return $data;
+        }
+        $request = sprintf(
+            '/helpdesk/tickets/view/%d?format=json&page=%d',
+            (int) $viewId,
+            (int) $page
+        );
+        return json_decode(
+            $this->restCall(
+                $request,
+                self::METHOD_GET
+            )
+        );
+    }
+
+    /**
      * Get tickets that are neither closed or resolved
      * @param string $email
      * @return null|array
@@ -165,15 +194,8 @@ class Ticket extends Rest
             $response
         );
         //update ticket model, set ids and created timestamp
-        return $ticket->setId(
-            $json->helpdesk_ticket->id
-        )->setDisplayId(
-            $json->helpdesk_ticket->display_id
-        )->setCreatedAt(
-            new \DateTime(
-                $json->helpdesk_ticket->created_at
-            )
+        return $ticket->setByObject(
+            $json->helpdesk_ticket
         );
     }
-
 }
