@@ -19,7 +19,7 @@ class Composer
                 'N'
             );
             $path = realpath(
-                __DIR__.'../Model/Ticket.php'
+                __DIR__.'/../Model/Ticket.php'
             );
             switch ($r)
             {
@@ -30,7 +30,7 @@ class Composer
                 case 'Y':
                 case 'y':
                     $contents = file_get_contents($path);
-                    $cc = $io->ask('Value for CC_EMAILS', '');
+                    $cc = $io->ask('Value for CC_EMAILS: ', '');
                     $cc = preg_replace(
                         '/(?<!\\\\)\'/',
                         '\\\'',
@@ -44,6 +44,7 @@ class Composer
                             $contents
                         )
                     );
+                    $r = null;
                     break;
                 default:
                     $io->overwrite(
