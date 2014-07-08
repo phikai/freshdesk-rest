@@ -12,6 +12,12 @@ use \Traversable,
 abstract class Base implements Iterator
 {
     const RESPONSE_KEY = '';
+
+    /**
+     * @var string
+     */
+    private $class = null;
+
     /**
      * @var int
      */
@@ -36,11 +42,12 @@ abstract class Base implements Iterator
      */
     public function __construct($data = null)
     {
-        if (self::RESPONSE_KEY === '')
+        $this->class = $class = get_class($this);
+        if ($class::RESPONSE_KEY === '')
             throw new \RuntimeException(
                 sprintf(
                     '%s does not have a RESPONSE_KEY defined!',
-                    get_class($this)
+                    $class
                 )
             );
         $methods = get_class_methods($this);
@@ -67,8 +74,9 @@ abstract class Base implements Iterator
         elseif (is_object($mixed) && !$mixed instanceof stdClass)
             throw new InvalidArgumentException(
                 sprintf(
-                    '%s expects array, stdClass instance or Traversable object',
-                    __METHOD__
+                    '%s::%s expects array, stdClass instance or Traversable object',
+                    $this->class,
+                    __FUNCTION__
                 )
             );
         return $this->setByObject(
@@ -112,15 +120,16 @@ abstract class Base implements Iterator
      */
     final protected function setByObject(\stdClass $obj)
     {
+        $class = $this->class;
         if (property_exists($obj, 'errors'))
             throw new InvalidArgumentException(
                 sprintf(
                     'Failed to set %s, data was error response: %s',
-                    __CLASS__,
+                    $class,
                     $obj->errors->error
                 )
             );
-        if (property_exists($obj, self::RESPONSE_KEY))
+        if (property_exists($obj, $class::RESPONSE_KEY))
             $obj = $obj->helpdesk_ticket;
         foreach ($obj as $p => $v)
         {
@@ -146,7 +155,7 @@ abstract class Base implements Iterator
      * Every object must have toJsonDate method...
      * @return string
      */
-    abstract function toJsonData();
+    abstract public function toJsonData();
 
     /**
      * {@inheritdoc}

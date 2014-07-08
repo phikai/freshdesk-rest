@@ -221,6 +221,25 @@ class Ticket extends Rest
     }
 
     /**
+     * Set displayId on model, pass to this function to auto-complete
+     * @param TicketM $ticket
+     * @return TicketM
+     */
+    public function getFullTicket(TicketM $ticket)
+    {
+        $response = json_decode(
+            $this->restCall(
+                sprintf(
+                    '/helpdesk/tickets/%d.json',
+                    $ticket->getDisplayId()
+                ),
+                self::METHOD_GET
+            )
+        );
+        return $ticket->setAll($response);
+    }
+
+    /**
      * Create new ticket, returns model after setting createdAt property
      * @param TicketM $ticket
      * @return \Freshdesk\Model\Ticket
@@ -247,6 +266,30 @@ class Ticket extends Rest
         //update ticket model, set ids and created timestamp
         return $ticket->setAll(
             $json->helpdesk_ticket
+        );
+    }
+
+    /**
+     * Update the ticket
+     * @param TicketM $ticket
+     * @return $this
+     */
+    public function updateTicket(TicketM $ticket)
+    {
+        $url = sprintf(
+            '/helpdesk/tickets/%d.json',
+            $ticket->getDisplayId()
+        );
+        $data = $ticket->toJsonData();
+        $response = json_decode(
+            $this->restCall(
+                $url,
+                self::METHOD_PUT,
+                $data
+            )
+        );
+        return $ticket->setAll(
+            $response->ticket
         );
     }
 

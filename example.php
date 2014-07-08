@@ -8,8 +8,10 @@
 require 'src/Freshdesk/Config/Connection.php';
 require 'src/Freshdesk/Rest.php';
 require 'src/Freshdesk/Ticket.php';
+require 'src/Freshdesk/Model/Base.php';
 require 'src/Freshdesk/Model/Ticket.php';
 require 'src/Freshdesk/Tool/ModelGenerator.php';
+
 //use the classes
 use Freshdesk\Config\Connection,
     Freshdesk\Rest,
@@ -25,6 +27,17 @@ $model = new TicketM(
         'display_id'    => 12345
     )
 );
+$t = new Ticket($conf);
+//get all data associated with this id
+$model = $t->getFullTicket($model);
+//close a ticket
+$ticket = $t->updateTicket(
+    $model->setStatus(4)
+);
+
+
+
+
 //fire up the generator
 $gen = new ModelGenerator($conf);
 //generate class, extending from the TicketM class
