@@ -68,6 +68,14 @@ class Note extends Base
     protected $attachments = null;
 
     /**
+     * @var array
+     */
+    protected $toDateTime = array(
+        'setUpdatedAt',
+        'setCreatedAt'
+    );
+
+    /**
      * @param string $body
      * @return $this
      */
