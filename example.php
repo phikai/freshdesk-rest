@@ -8,6 +8,7 @@
 require 'src/Freshdesk/Config/Connection.php';
 require 'src/Freshdesk/Rest.php';
 require 'src/Freshdesk/Ticket.php';
+require 'src/Freshdesk/Model/Base.php';
 require 'src/Freshdesk/Model/Ticket.php';
 require 'src/Freshdesk/Tool/ModelGenerator.php';
 //use the classes

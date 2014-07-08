@@ -3,9 +3,7 @@
 namespace Freshdesk\Model;
 
 use \DateTime,
-    \InvalidArgumentException,
-    \Traversable,
-    \stdClass;
+    \InvalidArgumentException;
 
 class Ticket extends Base
 {
