@@ -2,6 +2,7 @@
 namespace Freshdesk;
 
 use Freshdesk\Model\Ticket as TicketM,
+    Freshdesk\Model\Note,
     \InvalidArgumentException,
     \RuntimeException;
 
@@ -247,5 +248,30 @@ class Ticket extends Rest
         return $ticket->setByObject(
             $json->helpdesk_ticket
         );
+    }
+
+    public function addNoteToTicket(Note $note)
+    {
+        $url = sprintf(
+            '/helpdesk/tickets/%d/conversations/note.json',
+            $note->getTicket()
+                ->getDisplayId()
+        );
+        $response = json_decode(
+            $this->restCall(
+                $url,
+                self::METHOD_POST,
+                $note->toJsonData()
+            )
+        );
+        if (!property_exists($response, 'note'))
+            throw new RuntimeException(
+                sprintf(
+                    'Failed to add note: %s',
+                    json_encode($response)
+                )
+            );
+        //todo set properties on Note instance
+        return $note;
     }
 }
