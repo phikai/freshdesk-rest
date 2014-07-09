@@ -4,8 +4,7 @@ namespace Freshdesk\Tool;
 use Freshdesk\Config\Connection,
     Freshdesk\Model\Ticket,
     Freshdesk\Rest,
-    Freshdesk\Ticket as TicketAPI,
-    \stdClass;
+    Freshdesk\Ticket as TicketAPI;
 
 class ModelGenerator
 {

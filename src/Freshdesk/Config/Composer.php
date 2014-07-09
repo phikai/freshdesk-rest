@@ -2,6 +2,7 @@
 
 namespace Freshdesk\Config;
 
+use Composer\Script\Event;
 
 class Composer
 {
@@ -9,8 +10,9 @@ class Composer
      * postUpdate composer hook to set Ticket::CC_EMAIL constant
      * @param $event
      */
-    public static function postUpdate($event)
+    public static function postUpdate(Event $event)
     {
+        /** @var \Composer\IO\IOInterface $io */
         $io = $event->getIO();
         do
         {

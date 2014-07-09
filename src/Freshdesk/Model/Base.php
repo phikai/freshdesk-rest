@@ -43,6 +43,7 @@ abstract class Base implements Iterator
     public function __construct($data = null)
     {
         $this->class = $class = get_class($this);
+        /** @noinspection PhpUndefinedFieldInspection */
         if ($class::RESPONSE_KEY === '')
             throw new \RuntimeException(
                 sprintf(
@@ -79,6 +80,7 @@ abstract class Base implements Iterator
                     __FUNCTION__
                 )
             );
+        /** @noinspection PhpParamsInspection */
         return $this->setByObject(
             (object) $mixed
         );
@@ -129,6 +131,7 @@ abstract class Base implements Iterator
                     $obj->errors->error
                 )
             );
+        /** @noinspection PhpUndefinedFieldInspection */
         if (property_exists($obj, $class::RESPONSE_KEY))
             $obj = $obj->helpdesk_ticket;
         foreach ($obj as $p => $v)
