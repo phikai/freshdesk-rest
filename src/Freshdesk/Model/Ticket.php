@@ -59,6 +59,11 @@ class Ticket extends Base
     protected $createdAt = null;
 
     /**
+     * @var array<CustomField>
+     */
+    protected $customField = null;
+
+    /**
      * @var array - add all setters that require a DateTime instsance as argument
      */
     protected $toDateTime = array(
@@ -221,12 +226,80 @@ class Ticket extends Base
     }
 
     /**
+     * @param mixed $mixed
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function setCustomField($mixed)
+    {
+        if ($mixed instanceof \stdClass)
+            $mixed = (array) $mixed;
+        elseif ($mixed instanceof CustomField)
+        {
+            if (is_array($this->customField))
+                return $this->addCustomField($mixed);
+            $mixed = array($mixed);
+        }
+        if (!is_array($mixed))
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s expects an array, stdClass instance or a CustomField model',
+                    __METHOD__
+                )
+            );
+        $this->customField = array();
+        foreach ($mixed as $k => $v)
+            $this->addCustomField($v, $k);
+        return $this;
+    }
+
+    /**
+     * @param null|string $name
+     * @return \Freshdesk\Model\CustomField|null
+     */
+    public function getCustomField($name = null)
+    {
+        if ($name === null)
+            return $this->customField;
+        foreach ($this->customField as $k => $field)
+        {
+            if ($field->getName() == $name)
+                return $field;
+        }
+        return null;
+    }
+
+    /**
+     * @param string|\Freshdesk\Model\CustomField $mix
+     * @param null|string|int $k
+     * @return $this
+     */
+    public function addCustomField($mix, $k = null)
+    {
+        if ($mix instanceof CustomField)
+            $this->customField[] = $mix;
+        else
+            $this->customField[] = new CustomField(
+                array(
+                    'name'  => $k,
+                    'value' => $mix,
+                    'ticket'=> $this
+                )
+            );
+        return $this;
+    }
+
+    /**
      * Get the json-string for this ticket instance
      * Ready-made to create a new freshdesk ticket
      * @return string
      */
     public function toJsonData()
     {
+        $custom = array();
+        $fields = $this->getCustomFields();
+        foreach ($fields as $f)
+            $custom[$f->getName(true)] = $f->getValue();
         return json_encode(
             array(
                 self::RESPONSE_KEY   => array(
@@ -234,7 +307,8 @@ class Ticket extends Base
                     'subject'       => $this->subject,
                     'email'         => $this->email,
                     'priority'      => $this->priority,
-                    'status'        => $this->status
+                    'status'        => $this->status,
+                    'custom_field'  => $custom
                 ),
                 'cc_emails' => self::CC_EMAIL
             )
