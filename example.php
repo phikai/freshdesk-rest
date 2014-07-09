@@ -46,7 +46,8 @@ $gen = new ModelGenerator($conf);
 //properties not present in base class
 echo $gen->generateTicketClass(
     $model,
-    'FullTicket'
+    'YourTicket',
+    '/home/user/abs/path/to/YourTicket.php'
 );
 
 //basic/general rest calls

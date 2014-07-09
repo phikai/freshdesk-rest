@@ -70,18 +70,23 @@ class ModelGenerator
     /**
      * If storeIn is false, then the class string will be returned
      * For testing purposes only, pass absolute path, and the class will be written there
+     * set $overwrite to true if you want to overwrite an existing class
      * @param Ticket $ticket
      * @param string $name
      * @param string|bool $storeIn = false
+     * @param bool $overwrite = false
      * @throws \InvalidArgumentException
      */
-    public function generateTicketClass(Ticket $ticket, $name = 'TicketX', $storeIn = false)
+    public function generateTicketClass(Ticket $ticket, $name = 'TicketX', $storeIn = false, $overwrite = false)
     {
         $path = null;
         if ($storeIn !== false)
         {//make sure class doesn't exist yet
-            $path = $storeIn.'/'.$name.'.php';
-            if (file_exists($path))
+            if (substr($storeIn, -4) !== '.php')
+                $path = $storeIn.'/'.$name.'.php';
+            else
+                $path = $storeIn;
+            if ($overwrite === false && file_exists($path))
                 throw new \RuntimeException(
                     sprintf(
                         'Cannot create new class %s in %s, file %s already exists',
@@ -112,6 +117,12 @@ class ModelGenerator
             'properties'    => array(),
             'methods'       => array()
         );
+        if (strstr($name, '_'))
+        {//check pseudo-namespaced class, don't add namespace component
+         //instead, add use statement for base-class
+            unset($components['namespace']);
+            $components['use'] = implode('\\', $class).'\\'.$className;
+        }
         foreach ($base as $p => $v)
         {
             $setter = 'get'.implode(
@@ -149,11 +160,14 @@ class ModelGenerator
             }
         }
         $string = array(
-            '<?php',
-            'namespace '.$components['namespace'],
-            'class '.$components['name'].' extends '.$components['extends'],
-            '{',
+            '<?php'
         );
+        if (isset($components['namespace']))
+            $string[] = 'namespace '.$components['namespace'].';';
+        else
+            $string[] = 'use '.$components['use'].';';
+        $string[] = 'class '.$components['name'].' extends '.$components['extends'];
+        $string[] = '{';
         $methods = array();
         foreach ($components['properties'] as $p => $type)
         {
