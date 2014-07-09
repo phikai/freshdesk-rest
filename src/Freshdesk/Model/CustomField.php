@@ -5,7 +5,7 @@ use \Traversable;
 
 class CustomField extends Base
 {
-    const RESPONSE_KEY = '_\d+';//use to remove numeric appendix from field-names
+    const RESPONSE_KEY = '/_\d+$/';//use to remove numeric appendix from field-names
 
     /**
      * @var string
@@ -47,10 +47,13 @@ class CustomField extends Base
                 )
             );
         }
-        array_pop($fields);
-        $fields[] = $this->setName($k)
-            ->setValue($v)
-            ->setTicket($obj);
+        $last = array_pop($fields);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $fields[] = $this->setName(
+            $last->getName()
+            )->setValue(
+                $last->getValue()
+            )->setTicket($obj);
         $obj->setCustomField($fields);
         return $this;
     }
@@ -81,7 +84,7 @@ class CustomField extends Base
     public function getName($full = false)
     {
         if ($full === true)
-            $this->name.$this->numericAppendix;
+            return $this->name.$this->numericAppendix;
         return $this->name;
     }
 
