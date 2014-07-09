@@ -5,7 +5,9 @@ use \Traversable;
 
 class CustomField extends Base
 {
-    const RESPONSE_KEY = '/_\d+$/';//use to remove numeric appendix from field-names
+    //use to remove numeric appendix from field-names
+    //This constant is checked by Base class
+    const RESPONSE_KEY = '/_\d+$/';
 
     /**
      * @var string
@@ -122,6 +124,27 @@ class CustomField extends Base
     public function getTicket()
     {
         return $this->ticket;
+    }
+
+    /**
+     * @param string $numericAppendix
+     * @return $this
+     */
+    public function setNumericAppendix($numericAppendix)
+    {
+        $numericAppendix = (string) $numericAppendix;//force string
+        if ($numericAppendix{0} !== '_')
+            $numericAppendix = '_'.$numericAppendix;
+        $this->numericAppendix = $numericAppendix;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNumericAppendix()
+    {
+        return $this->numericAppendix;
     }
 
     /**
