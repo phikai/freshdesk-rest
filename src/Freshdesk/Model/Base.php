@@ -133,7 +133,7 @@ abstract class Base implements Iterator
             );
         /** @noinspection PhpUndefinedFieldInspection */
         if (property_exists($obj, $class::RESPONSE_KEY))
-            $obj = $obj->helpdesk_ticket;
+            $obj = $obj->{$class::RESPONSE_KEY};
         foreach ($obj as $p => $v)
         {
             $setter = 'set'.implode(
