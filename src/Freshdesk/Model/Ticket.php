@@ -74,7 +74,7 @@ class Ticket extends Base
     /**
      * @var array<CustomField>
      */
-    protected $customField = null;
+    protected $customField = array();
 
     /**
      * @var array - add all setters that require a DateTime instsance as argument
@@ -300,6 +300,11 @@ class Ticket extends Base
                 )
             );
         return $this;
+    }
+
+    public function getCustomFields()
+    {
+        return $this->customFields;
     }
 
     /**
