@@ -304,7 +304,7 @@ class Ticket extends Base
 
     public function getCustomFields()
     {
-        return $this->customFields;
+        return $this->customField;
     }
 
     /**
