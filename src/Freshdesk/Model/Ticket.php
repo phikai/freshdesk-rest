@@ -10,6 +10,19 @@ class Ticket extends Base
 
     const RESPONSE_KEY = 'helpdesk_ticket';
 
+    const SOURCE_EMAIL = 1;
+    const SOURCE_PORTAL = 2;
+    const SOURCE_PHONE = 3;
+    const SOURCE_FORUM = 4;
+    const SOURCE_TWITTER = 5;
+    const SOURCE_FACEBOOK = 6;
+    const SOURCE_CHAT = 7;
+
+    const PRRIORITY_LOW = 1;
+    const PRIORITY_MEDIUM = 2;
+    const PRIORITY_HIGH = 3;
+    const PRIORITY_URGENT = 4;
+
     const STATUS_ALL = 1;
     const STATUS_OPEN = 2;
     const STATUS_PENDING = 3;
