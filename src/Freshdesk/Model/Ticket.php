@@ -318,6 +318,19 @@ class Ticket extends Base
         $fields = $this->getCustomFields();
         foreach ($fields as $f)
             $custom[$f->getName(true)] = $f->getValue();
+        if (empty($custom))
+            return json_encode(
+                array(
+                    self::RESPONSE_KEY   => array(
+                        'description'   => $this->description,
+                        'subject'       => $this->subject,
+                        'email'         => $this->email,
+                        'priority'      => $this->priority,
+                        'status'        => $this->status
+                    ),
+                    'cc_emails' => self::CC_EMAIL
+                )
+            );
         return json_encode(
             array(
                 self::RESPONSE_KEY   => array(
