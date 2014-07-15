@@ -186,6 +186,37 @@ class Ticket extends Rest
     }
 
     /**
+     * @param TicketM $model
+     * @param bool $requesterOnly = true
+     * @param bool $includePrivate = false
+     * @return array<\Freshdesk\Model\Ticket>
+     */
+    public function getTicketNotes(TicketM $model, $requesterOnly = true, $includePrivate = false)
+    {
+        $notes = $model->getNotes();
+        if (empty($notes))
+        {
+            $model = $this->getFullTicket(
+                $model->getDisplayId(),
+                $model
+            );
+            $notes = $model->getNotes();
+        }
+        $return = array();
+        foreach ($notes as $note)
+        {
+            /** @var \Freshdesk\Model\Note $note */
+            if ($includePrivate === false && $note->getPrivate())
+                continue;//do not include private tickets
+            if ($requesterOnly === true && $note->getUserId() === $model->getRequesterId())
+                $return[] = $note;
+            else
+                $return[] = $note;
+        }
+        return $return;
+    }
+
+    /**
      * Get tickets that are neither closed or resolved
      * @param string $email
      * @return null|array

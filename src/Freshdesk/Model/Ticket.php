@@ -42,6 +42,11 @@ class Ticket extends Base
     protected $displayId = null;
 
     /**
+     * @var int
+     */
+    protected $requesterId = null;
+
+    /**
      * @var string
      */
     protected $description = null;
@@ -55,6 +60,11 @@ class Ticket extends Base
      * @var string
      */
     protected $email = null;
+
+    /**
+     * @var array<\Freshdesk\Model\Note>
+     */
+    protected $notes = array();
 
     /**
      * @var int
@@ -215,6 +225,61 @@ class Ticket extends Base
     public function getDisplayId()
     {
         return $this->displayId;
+    }
+
+    /**
+     * @param int $reqId
+     * @return $this
+     */
+    public function setRequesterId($reqId)
+    {
+        $this->requesterId = (int) $reqId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRequesterId()
+    {
+        return $this->requesterId;
+    }
+
+    /**
+     * @param array $notes
+     * @return $this
+     */
+    public function setNotes(array $notes)
+    {
+        if (!empty($this->notes))
+            $this->notes = array();
+        foreach ($notes as $note)
+            $this->notes[] = new Note($note);
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getNotes()
+    {
+        return $this->notes;
+    }
+
+    /**
+     * Return notes that the requester added to ticket
+     * @return array
+     */
+    public function getRequesterNotes()
+    {
+        $return = array();
+        foreach ($this->notes as $note)
+        {
+            /** @var \Freshdesk\Model\Note $note */
+            if ($note->getUserId() == $this->getRequesterId())
+                $return[] = $note;
+        }
+        return $return;
     }
 
     /**
