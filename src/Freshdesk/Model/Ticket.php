@@ -82,6 +82,11 @@ class Ticket extends Base
     protected $createdAt = null;
 
     /**
+     * @var string
+     */
+    protected $ccEmailVal = null;
+
+    /**
      * @var array<CustomField>
      */
     protected $customField = array();
@@ -304,6 +309,26 @@ class Ticket extends Base
     }
 
     /**
+     * @param string $ccemail
+     * @return $this
+     */
+    public function setCcEmailVal($ccemail)
+    {
+        $this->ccEmailVal = $ccemail === null ? null : (string) $ccemail;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCcEmailVal()
+    {
+        if ($this->ccEmailVal === null)
+            return self::CC_EMAIL;
+        return $this->ccEmailVal;
+    }
+
+    /**
      * @param mixed $mixed
      * @return $this
      * @throws \InvalidArgumentException
@@ -381,6 +406,7 @@ class Ticket extends Base
     {
         $custom = array();
         $fields = $this->getCustomFields();
+        /** @var \Freshdesk\Model\CustomField $f */
         foreach ($fields as $f)
             $custom[$f->getName(true)] = $f->getValue();
         if (empty($custom))
@@ -393,7 +419,7 @@ class Ticket extends Base
                         'priority'      => $this->priority,
                         'status'        => $this->status
                     ),
-                    'cc_emails' => self::CC_EMAIL
+                    'cc_emails' => $this->getCcEmailVal()
                 )
             );
         return json_encode(
@@ -406,7 +432,7 @@ class Ticket extends Base
                     'status'        => $this->status,
                     'custom_field'  => $custom
                 ),
-                'cc_emails' => self::CC_EMAIL
+                'cc_emails' => $this->getCcEmailVal()
             )
         );
     }
