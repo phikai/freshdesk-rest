@@ -19,14 +19,14 @@ class ModelGenerator
     protected $api = null;
 
     private static $propertyFormat = array(
-        '    /*',
+        '    /**',
         '     * @var %s',
         '     */',
         '    protected $%s = null;'
     );
 
     private static $setterFormat = array(
-        '    /*',
+        '    /**',
         '     * @param %s $arg',
         '     * @return $this',
         '     */',
@@ -38,7 +38,7 @@ class ModelGenerator
     );
 
     private static $getterFormat = array(
-        '    /*',
+        '    /**',
         '     * @return %s',
         '     */',
         '    public function %s()',
