@@ -352,6 +352,6 @@ class Ticket extends Rest
                 )
             );
         //todo set properties on Note instance
-        return $note;
+        return $note->setAll($response);
     }
 }
