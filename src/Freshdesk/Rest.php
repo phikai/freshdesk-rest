@@ -50,6 +50,19 @@ class Rest
     }
 
     /**
+     * Public alias for $this->restCall($uri, Rest::METHOD_GET)
+     * @param string $uri
+     * @return string
+     */
+    public function getCall($uri)
+    {
+        return $this->restCall(
+            $uri,
+            self::METHOD_GET
+        );
+    }
+
+    /**
      * @param $urlMinusDomain - should start with /... example /solutions/categories.xml
      * @param $method - should be either GET, POST, PUT (and theoretically DELETE but that's untested).
      * @param string $postData - only specified if $method == POST or PUT

@@ -18,6 +18,17 @@ class ModelGenerator
      */
     protected $api = null;
 
+    private static $arrayFormat = array(
+        '    /**',
+        '     * @var %s',
+        '     */',
+        '    protected $%s = array('
+    );
+
+    private static $arrayValue = '        \'%s\',';
+
+    private static $arrayClose = '    );';
+
     private static $propertyFormat = array(
         '    /**',
         '     * @var %s',
@@ -56,6 +67,10 @@ class ModelGenerator
             PHP_EOL,
             self::$setterFormat
         );
+        self::$arrayFormat = PHP_EOL.implode(
+            PHP_EOL,
+            self::$arrayFormat
+        );
         self::$getterFormat = PHP_EOL.implode(
             PHP_EOL,
             self::$getterFormat
@@ -65,6 +80,163 @@ class ModelGenerator
             self::$propertyFormat
         );
         $this->connection = $con;
+    }
+
+    /**
+     * Since this method should use a GET request (query data), only GET requests are supported
+     * @param string $callString URI for the request to get the data
+     * @param string $name Name of the class to generate
+     * @param bool $overWrite = falsea
+     * @throws \RuntimeException
+     */
+    public function generateNewModel($callString, $name, $overWrite = false)
+    {
+        $path = realpath(__DIR__.'/../Model/').'/'.$name.'.php';
+        if ($overWrite === false && file_exists($path))
+            throw new \RuntimeException(
+                sprintf(
+                    'File %s already exists, where %s class would be stored',
+                    $path,
+                    $name
+                )
+            );
+        $api = $this->getRestApi();
+        $response = json_decode(
+            $api->getCall(
+                $callString
+            )
+        );
+        if (property_exists($response, 'errors'))
+            throw new \RuntimeException(
+                sprintf(
+                    '%s call resulted in errors: %s%sRaw response => %s',
+                    $callString,
+                    $response->errors->error,
+                    PHP_EOL,
+                    json_encode(
+                        $response
+                    )
+                )
+            );
+        $constCandidates = array(
+            'names' => array(),
+            'count' => array()
+        );
+        $j = 0;
+        foreach ($response as $cand => $data)
+        {
+            ++$j;
+            $constCandidates['names'][] = $cand;
+            $constCandidates['count'][] = count( (array) $data);
+        }
+        $max = 0;
+        $const = '';
+        for ($i=0;$i<$j;++$i)
+        {
+            if ($constCandidates['count'][$i] > $max)
+            {
+                $const = $constCandidates['names'][$i];
+                $max = $constCandidates['count'][$i];
+            }
+        }
+        $string = array(
+            '<?php',
+            'namespace Freshdesk\\Model;',
+            'class '.$name.' extends Base',
+            '{',
+            '    const RESPONSE_KEY = \''.$const.'\';'
+        );
+        $components = array(
+            'properties'    => array(),
+            'methods'       => array(),
+            'toDateTime'    => array()
+        );
+        $data = $response->{$const};
+        foreach ($data as $p => $val)
+        {
+            $setter = 'set'.implode(
+                '',
+                array_map(
+                    'ucfirst',
+                    explode(
+                        '_',
+                        $p
+                    )
+                )
+            );
+            if (is_array($val))
+                $type = 'array';
+            elseif (is_object($val))
+                $type = '\\stdClass';
+            elseif ($val === null)
+                $type = 'mixed';
+            elseif(preg_match('/[\d-]{10}T[\d:+]{14}/', $val))
+                $type = '\\DateTime';
+            elseif(is_numeric($val))
+                $type = 'int';
+            else
+                $type = gettype($val);
+            $p = strtolower(
+                    $setter{3}
+                ).substr($setter, 4);
+            if ($type === '\\DateTime')
+                $components['toDateTime'][] = $setter;
+            $components['properties'][$p] = $type;
+            $components['methods'][$p] = array(
+                $setter,
+                'g'.substr($setter, 1)
+            );
+        }
+        $methods = array();
+        foreach ($components['properties'] as $p => $type)
+        {
+            $string[] = sprintf(
+                self::$propertyFormat,
+                $type,
+                $p
+            );
+            $methods[] = sprintf(
+                self::$getterFormat,
+                $type,
+                $components['methods'][$p][1],
+                $p
+            );
+            $setter =  sprintf(
+                self::$setterFormat,
+                $type,
+                $components['methods'][$p][0],
+                $p
+            );
+            if ($type{0} === '\\' || $type === 'array')
+                $setter = str_replace(
+                    '($arg)',
+                    '('.$type.' $arg)',
+                    $setter
+                );
+            $methods[] = $setter;
+        }
+        $string[] = sprintf(
+            self::$arrayFormat,
+            'array',
+            'toDateTime'
+        );
+        foreach ($components['toDateTime'] as $setter)
+            $string[] = sprintf(
+                self::$arrayValue,
+                $setter
+            );
+        $string[] = self::$arrayClose;
+        $methods[] = '    public function toJsonData(){}';
+        $methods[] = '}';
+        $string = implode(
+                PHP_EOL,
+                array_merge($string, $methods)
+            ).PHP_EOL;
+        file_put_contents(
+            $path,
+            $string
+        );
+        return $string;
     }
 
     /**
