@@ -9,7 +9,7 @@ class Contact extends Rest
     /**
      * @param $id
      * @param ContactM $model
-     * @return $this
+     * @return \Freshdesk\Model\Contact
      * @throws \RuntimeException
      */
     public function getContactById($id, ContactM $model = null)
