@@ -184,6 +184,9 @@ abstract class Base implements Iterator
         return $this->position;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function next()
     {
         ++$this->position;

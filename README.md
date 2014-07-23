@@ -65,3 +65,9 @@ $apiExample = new Rest(
     )
 );
 ```
+
+## Notes
+This code follows the coding standards as layed out by the PHP-FIG, with some Symfony2 style sprinkled on top.
+Exceptions' messages are returned by the `sprintf` and `vsprintf` functions, for example.
+
+I have, however, granted myself one guilty pleasure: The entire code-base uses Allman-style indentation.
