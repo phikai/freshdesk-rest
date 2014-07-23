@@ -4,6 +4,8 @@ namespace Freshdesk\Model;
 
 use \Traversable,
     \InvalidArgumentException,
+    \BadMethodCallException,
+    \LogicException,
     \stdClass,
     \Iterator,
     \DateTime;
@@ -60,6 +62,57 @@ abstract class Base implements Iterator
         if ($data === null)
             return $this;
         return $this->setAll($data);
+    }
+
+    /**
+     * Disallow magic methods like this: they are slow
+     * and actively encourage laziness, sloppyness,
+     * They defeat the point of data-hiding,
+     * encourage instance overloading,
+     * AND can, possibly, circumvent validation!
+     * @throws \LogicException
+     */
+    final public function __get($name)
+    {
+        throw new LogicException(
+            sprintf(
+                'Direct access of%s::%s not allowed, use getter',
+                $this->class,
+                $name
+            )
+        );
+    }
+
+    /**
+     * Disallow magic setter, for the same reasons mentioned
+     * in comments for __get method.
+     * @throws \LogicException
+     */
+    final public function __set($name, $val)
+    {
+        throw new LogicException(
+            sprintf(
+                'Cannot assign %s::%s directly, use setter',
+                $this->class,
+                $name
+            )
+        );
+    }
+
+    /**
+     * create final __call method, to avoid children
+     * to implement this rubbish (same reasons as __get, __set)
+     * @throws \BadMethodCallException
+     */
+    final public function __call($method, array $args)
+    {
+        throw new BadMethodCallException(
+            sprintf(
+                '%s::%s() either does not exist, or is not callable',
+                $this->class,
+                $method
+            )
+        );
     }
 
     /**
