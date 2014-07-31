@@ -122,10 +122,13 @@ class Note extends Base
     }
 
     /**
-     * @return \DateTime
+     * @param bool $asString
+     * @return \DateTime|string
      */
-    public function getCreatedAt()
+    public function getCreatedAt($asString = true)
     {
+        if ($asString === true && $this->createdAt instanceof DateTime)
+            return $this->createdAt->format('Y-m-d H:i:s');
         return $this->createdAt;
     }
 
