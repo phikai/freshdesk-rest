@@ -1,6 +1,7 @@
 {
     "name": "evodelavega/freshdesk-rest",
     "description": "A simple wrapper for the Freshdesk REST API",
+    "keywords": ["Freshdesk", "Helpdesk", "Customer support", "REST", "API", "Wrapper", "JSON"],
     "license": "GPL-2.0+",
     "authors": [
         {
