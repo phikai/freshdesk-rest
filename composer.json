@@ -1,8 +1,20 @@
 {
     "name": "evodelavega/freshdesk-rest",
+    "description": "A simple wrapper for the Freshdesk REST API",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Elias Van Ootegem",
+            "role": "Developer"
+        }
+    ],
     "autoload": {
         "psr-0" : {
             "Freshdesk" : "src"
         }
+    },
+    "require": {
+        "php": ">=5.3.0",
+        "ext-curl": "*"
     }
 }
