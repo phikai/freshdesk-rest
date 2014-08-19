@@ -21,7 +21,7 @@ Composer, obviously, but apart from that, this feature branch offers:
 6. Possibly add some data-models for tickets, customers, users and the like...
 
 ## Usage
-Add this repo to your composer.json file
+Add this repo to your composer.json file to use this repository as a direct dependency.
 
 ```json
 {
@@ -32,10 +32,20 @@ Add this repo to your composer.json file
         }
     ],
     "require": {
-        "EVODelavega/freshdesk-rest": "dev-feature/composer"
+        "EVODelavega/freshdesk-rest": "dev-master"
     }
 }
 ```
+This package has been added to packagist, too. Packagist only accepts lower-case package names, so simply adding the following will work:
+
+```json
+{
+    "require": {
+        "evodelavega/freshdesk-rest": "dev-master"
+    }
+}
+```
+
 If you are going to use this wrapper to create new tickets in freshdesk, there is a postUpdate/postInstall script you can use to set the cc-email constant in the Freshdesk\Model\Ticket class. To automatically configure this constant, add the following to your _scripts_ section in the composer.json file:
 
 ```json
