@@ -1,5 +1,5 @@
 {
-    "name": "EVODelavega/freshdesk-rest",
+    "name": "evodelavega/freshdesk-rest",
     "autoload": {
         "psr-0" : {
             "Freshdesk" : "src"
