@@ -1,12 +1,17 @@
 <?php
+namespace Freshdesk;
+
+use Freshdesk\Config\Connection;
 /**
- * Implements FreshDesk API methods for Tickets and Surveys in PHP.
- * See README.md
- * Forked from: https://github.com/blak3r/freshdesk-solutions
- * Big thanks to Blake for building the initial API Object Methods
+ * Composer-aware fork of blak3r's initial freshdesk API wrapper
+ * Based on the https://github.com/phikai/freshdesk-rest fork
+ * of Blake's initial work.
+ *
+ * The end-goal of this repo is to generate a more generic,
+ * easily extendable starting-point for your API calls.
  */
 
-class FreshdeskRest
+class Rest
 {
 
     const METHOD_POST = 'POST';
@@ -14,28 +19,10 @@ class FreshdeskRest
     const METHOD_DEL = 'DELETE';
     const METHOD_PUT = 'PUT';
 
-    const SCHEME_HTTP = 'http://';
-    const SCHEME_HTTPS = 'https://';
-
     /**
-     * @var string
+     * @var \Freshdesk\Config\Connection
      */
-    protected $scheme = self::SCHEME_HTTP;
-
-    /**
-     * @var string
-     */
-    protected $domain = null;
-
-    /**
-     * @var string
-     */
-    protected $username = null;
-
-    /**
-     * @var string
-     */
-    protected $password = null;
+    protected $config = null;
 
     /**
      * @var int
@@ -57,54 +44,22 @@ class FreshdeskRest
      */
     protected $debugLogs = array();
 
-    /**
-     * Constructor - Passing a full url is enough,but you can pass domain, user, pass and scheme separatly.
-     *               Note the order: scheme sits in between user & password, because API keys default
-     *               To the generic "X" password. If a password is provided, $scheme will become the password
-     * @param string $domain - yourname.freshdesk.com - but will also accept http://yourname.freshdesk.com/, etc.
-                        pass "http[s]://user:pass@yourname.freshdesk.com" to set everything in one go
-     * @param string $username = null
-     * @param string $scheme = null
-     * @param string $password = null
-     */
-    public function __construct($domain, $username = null, $scheme = null,  $password = null)
+    public function __construct(Connection $config)
     {
-        $url = parse_url($domain);
+        $this->config = $config;
+    }
 
-        if ($username === null && $password === null)
-        {//assume $domain is full url, parse and set (after checking, of course)
-            if (!preg_match('/^https?:\/\/[^:]+:[^@]+@.+$/',$domain))
-                throw new \InvalidArgumentException(
-                    sprintf(
-                        '%s should be a fully qualified domain (http[s]://user:pass@domain)',
-                        $domain
-                    )
-                );
-            $url = parse_url($domain);
-            $this->scheme = $url['scheme'].'://';
-            $this->password = $url['pass'];
-            $this->username = $url['user'];
-            $this->domain = $url['host'];
-            return $this;//constructor is done here, return here, to avoid having to write an else-block
-        }
-        //remove leading http[s]://, if present. strpos + substr === fast functions
-        $i = strpos($domain, '://');
-        if ($i !== false)
-            $domain = substr($domain, $i+3);
-        //while a slash is found in the $domain string, substr it out
-        while(($i = strpos($domain, '/')) && $i !== false)
-            $domain = substr($domain, 0, $i);
-
-        if ($scheme && $password === null && $scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
-        {//$scheme is actually $password, added this not to break existing code
-            $password = $scheme;
-            $scheme = null;
-        }
-        if ($scheme)
-            $this->scheme = $scheme;
-        $this->domain = $domain;
-        $this->password = $password === null ? 'X' : $password;
-        $this->username = $username;
+    /**
+     * Public alias for $this->restCall($uri, Rest::METHOD_GET)
+     * @param string $uri
+     * @return string
+     */
+    public function getCall($uri)
+    {
+        return $this->restCall(
+            $uri,
+            self::METHOD_GET
+        );
     }
 
     /**
@@ -112,16 +67,20 @@ class FreshdeskRest
      * @param $method - should be either GET, POST, PUT (and theoretically DELETE but that's untested).
      * @param string $postData - only specified if $method == POST or PUT
      * @param $debugMode {bool} optional - prints the request and response with headers
-     * @return the raw response
+     * @return string
+     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      */
     protected function restCall($urlMinusDomain, $method, $postData = '',$debugMode=false)
     {
         if ($urlMinusDomain{0} !== '/')
             $urlMinusDomain = '/'.$urlMinusDomain;
-        $url = $this->scheme.$this->domain.$urlMinusDomain;
+        $url = $this->config->getScheme().
+                $this->config->getDomain().
+                $urlMinusDomain;
 
         $opts = array(
-            \CURLOPT_USERPWD        => $this->username.':'.$this->password,
+            \CURLOPT_USERPWD        => $this->config->getUsername().':'.$this->config->getPassword(),
             \CURLOPT_HTTPHEADER     => array(
                 'Content-type: application/json'
             ),
@@ -144,12 +103,16 @@ class FreshdeskRest
             case self::METHOD_POST:
                 if (empty($postData))
                     $opts[\CURLOPT_HTTPHEADER][] = 'Content-length: 0';
+                //According to the initial wrapper, length should is not required here...
+                //else
+                    //$opts[\CURLOPT_HTTPHEADER][] = 'Content-length: '.strlen($postData);
                 $opts[\CURLOPT_POST] = true;
                 $opts[\CURLOPT_POSTFIELDS] = $postData;
                 break;
             case self::METHOD_PUT:
                 $opts[\CURLOPT_CUSTOMREQUEST] =  'PUT';
                 $opts[\CURLOPT_POSTFIELDS] = $postData;
+                break;
             case self::METHOD_DEL:
                 $opts[\CURLOPT_CUSTOMREQUEST] = 'DELETE';
                 break;
@@ -170,14 +133,16 @@ class FreshdeskRest
         $ch = curl_init($url);
         if (!is_resource($ch))
         {
-            fclose($opts[\CURLOPT_STDERR]);//close stream
+            if ($debugMode)
+                fclose($opts[\CURLOPT_STDERR]);//close stream
             throw new \RuntimeException(
                 'Could not init curl request'
             );
         }
         if (!curl_setopt_array($ch, $opts))
         {
-            fclose($opts[\CURLOPT_STDERR]);
+            if ($debugMode)
+                fclose($opts[\CURLOPT_STDERR]);
             throw new \RuntimeException('Could not set curl options');
         }
 
@@ -190,7 +155,6 @@ class FreshdeskRest
         {
             if (!$debugMode)
             {
-                fclose($opts[\CURLOPT_STDERR]);//close stream
                 curl_close($ch);//close curl
                 throw new \RuntimeException(
                     sprintf(
@@ -228,15 +192,12 @@ class FreshdeskRest
 
     /**
      * Get the log data if calls were made in debug mode
-     * Unless you have a good reason not to, stick to the default behaviour
-     * take care of the log-output yourself!
-     * @param bool $return = true
-     * @return array|null
+     * @return array
      */
-    public function logDebugData($return = true)
+    public function logDebugData()
     {
         if (empty($this->debugLogs))
-            return '';//nothing to log
+            return array();//nothing to log
         //first line => headers
         $data = array(
             implode(
@@ -250,33 +211,7 @@ class FreshdeskRest
         {//keep shifting from the array, until it's empty
             $data[]  = implode(' | ', $log);
         }
-        if ($return)
-            return $data;
-        //NOT DEFAULT BEHAVIOUR, only use in rare cases. This class should not generate output!
-        echo implode(
-            PHP_EOL,
-            $data
-        );
-    }
-
-    /**
-     * Set the scheme (using the class' constants, preferably)
-     * @param string $scheme
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public function setScheme($scheme)
-    {
-        if ($scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
-            throw new \InvalidArgumentException(
-                sprintf(
-                    '%s is not a valid scheme, use the %s::SCHEME_* constants',
-                    $scheme,
-                    __CLASS__
-                )
-            );
-        $this->scheme = $scheme;
-        return $this;
+        return $data;
     }
 
     /**
@@ -331,10 +266,14 @@ class FreshdeskRest
      * @param int $page
      * @return null|\stdClass
      */
-    public function getAllTickets($page)
+    public function getAllTickets($page, $filterAll = false)
     {
+        $base = '/helpdesk/tickets.json?';
+        if ($filterAll === true)
+            $base .= 'filter_name=all_tickets&';
+        $base .= 'page='.$page;
         $json = $this->restCall(
-            '/helpdesk/tickets.json?filter_name=all_tickets&page='.$page,
+            $base,
             self::METHOD_GET
         );
 

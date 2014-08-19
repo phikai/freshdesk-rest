@@ -3,19 +3,68 @@
  * File: example.php
  * Project: freshdesk-solutions
  */
-
-//Require the main configuration
-require_once('inc/config.php');
-
 //Require the FreshDesk API Library
-require_once("FreshdeskRest.php");
+//autoloaded, in real-life, of course
+require 'src/Freshdesk/Config/Connection.php';
+require 'src/Freshdesk/Rest.php';
+require 'src/Freshdesk/Ticket.php';
+require 'src/Freshdesk/Model/Base.php';
+require 'src/Freshdesk/Model/Ticket.php';
+require 'src/Freshdesk/Model/CustomField.php';
+require 'src/Freshdesk/Tool/ModelGenerator.php';
 
-//Create New FreshDesk API Object
-$fd = new FreshdeskRest(FD_URL, FD_API_USER, FD_API_PASS);
+//use the classes
+use Freshdesk\Config\Connection,
+    Freshdesk\Rest,
+    Freshdesk\Ticket,
+    Freshdesk\Model\Ticket as TicketM,
+    Freshdesk\Tool\ModelGenerator;
+$url = 'http://API-key:X@domain.freshdesk.com';
 
-//$fd->getSingleTicket(31701);
+$conf = new Connection($url);
+//choose a ticket
+$model = new TicketM(
+    array(
+        'display_id'    => 12345
+    )
+);
+$t = new Ticket($conf);
+//get all data associated with this id
+$model = $t->getFullTicket($model);
+//close a ticket
+$ticket = $t->updateTicket(
+    $model->setStatus(4)
+);
 
-//$json = $fd->getTicketSurvey(31701);
-$json = $fd->getTicketSurvey(32882);
 
+
+
+//fire up the generator
+$gen = new ModelGenerator($conf);
+//generate class, extending from the TicketM class
+//will create properties, setters and getters for all
+//properties not present in base class
+echo $gen->generateTicketClass(
+    $model,
+    'YourTicket',
+    '/home/user/abs/path/to/YourTicket.php'
+);
+
+//basic/general rest calls
+$fd = new Rest($conf);
+//get ticket, this call will be removed from Rest class & moved to Ticket class
+$json = $fd->getSingleTicket(1701);
 print_r($json);
+//for ticket-calls:
+$t = new Ticket($conf);
+//create new ticket
+$model = new TicketM(
+    array(
+        'description'   => 'Ignore this ticket, it is a test',
+        'subject'       => 'API-test',
+        'email'         => 'foo@bar.com'
+    )
+);
+
+//create new ticket, basic example
+$t->createNewTicket($model);
