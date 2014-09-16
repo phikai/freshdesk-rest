@@ -10,6 +10,7 @@ require 'src/Freshdesk/Rest.php';
 require 'src/Freshdesk/Ticket.php';
 require 'src/Freshdesk/Model/Base.php';
 require 'src/Freshdesk/Model/Ticket.php';
+require 'src/Freshdesk/Model/Contact.php';
 require 'src/Freshdesk/Model/CustomField.php';
 require 'src/Freshdesk/Tool/ModelGenerator.php';
 
@@ -17,11 +18,25 @@ require 'src/Freshdesk/Tool/ModelGenerator.php';
 use Freshdesk\Config\Connection,
     Freshdesk\Rest,
     Freshdesk\Ticket,
+    Freshdesk\Model\Contact,
     Freshdesk\Model\Ticket as TicketM,
     Freshdesk\Tool\ModelGenerator;
 $url = 'http://API-key:X@domain.freshdesk.com';
 
 $conf = new Connection($url);
+$t = new Ticket(
+    $conf
+);
+$m = new Contact(
+    array(
+        'email' => 'foo@bar.com'
+    )
+);
+//get an assoc array of tickets
+//keys are statusName values
+$tickets = $t->getGroupedTickets($m);
+//same as before, status values (1,2,3...) are the keys now
+$tickets = $t->getGroupedTickets('foobar@zar.com', false);
 //choose a ticket
 $model = new TicketM(
     array(

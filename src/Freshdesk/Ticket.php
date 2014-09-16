@@ -1,6 +1,7 @@
 <?php
 namespace Freshdesk;
 
+use Freshdesk\Model\Contact;
 use Freshdesk\Model\Ticket as TicketM,
     Freshdesk\Model\Note,
     \InvalidArgumentException,
@@ -56,6 +57,30 @@ class Ticket extends Rest
         if (!$json)
             return null;
         return json_decode($json);
+    }
+
+    /**
+     * get organized array of tickets by email
+     * @param Contact|string $contact
+     * @param bool $assoc = true
+     * @return array
+     */
+    public function getGroupedTickets($contact, $assoc = true)
+    {
+        if ($contact instanceof Contact)
+            $contact = $contact->getEmail();
+        $getter = $assoc === true ? 'getStatusName' : 'getStatus';
+        $tickets = $this->getTicketsByEmail($contact);
+        $groups = array();
+        foreach ($tickets as $ticket)
+        {
+            $model = new TicketM($ticket);
+            $key = $model->{$getter}();
+            if (!isset($groups[$key]))
+                $groups[$key] = array();
+            $groups[$key][] = $model;
+        }
+        return $groups;
     }
 
     /**

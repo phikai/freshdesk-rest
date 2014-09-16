@@ -77,6 +77,11 @@ class Ticket extends Base
     protected $status = 2;
 
     /**
+     * @var string
+     */
+    protected $statusName = 'Open';
+
+    /**
      * @var \DateTime
      */
     protected $createdAt = null;
@@ -194,6 +199,24 @@ class Ticket extends Base
     public function getStatus()
     {
         return $this->status;
+    }
+
+    /**
+     * @param string $sName
+     * @return $this
+     */
+    public function setStatusName($sName)
+    {
+        $this->statusName = $sName;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatusName()
+    {
+        return $this->statusName;
     }
 
     /**
