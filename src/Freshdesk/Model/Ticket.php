@@ -18,7 +18,7 @@ class Ticket extends Base
     const SOURCE_FACEBOOK = 6;
     const SOURCE_CHAT = 7;
 
-    const PRRIORITY_LOW = 1;
+    const PRIORITY_LOW = 1;
     const PRIORITY_MEDIUM = 2;
     const PRIORITY_HIGH = 3;
     const PRIORITY_URGENT = 4;
