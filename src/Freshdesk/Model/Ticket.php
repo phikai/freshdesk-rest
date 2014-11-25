@@ -42,9 +42,19 @@ class Ticket extends Base
     protected $displayId = null;
 
     /**
+     * @var bool
+     */
+    protected $deleted = false;
+
+    /**
      * @var int
      */
     protected $requesterId = null;
+
+    /**
+     * @var int
+     */
+    protected $responderId = null;
 
     /**
      * @var string
@@ -256,6 +266,24 @@ class Ticket extends Base
     }
 
     /**
+     * @param bool $deleted
+     * @return $this
+     */
+    public function setDeleted($deleted)
+    {
+        $this->deleted = (bool) $deleted;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getDeleted()
+    {
+        return $this->deleted;
+    }
+
+    /**
      * @param int $reqId
      * @return $this
      */
@@ -271,6 +299,24 @@ class Ticket extends Base
     public function getRequesterId()
     {
         return $this->requesterId;
+    }
+
+    /**
+     * @param int $respId
+     * @return $this
+     */
+    public function setResponderId($respId)
+    {
+        $this->responderId = (int) $respId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getResponderId()
+    {
+        return $this->responderId;
     }
 
     /**
