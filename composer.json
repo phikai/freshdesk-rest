@@ -1,6 +1,6 @@
 {
     "name": "evodelavega/freshdesk-rest",
-    "description": "A simple wrapper for the Freshdesk REST API",
+    "description": "A simple wrapper for the Freshdesk REST API. Freshdesk themselves are aware of this repo, and it is currently listed as the only third-part PHP wrapper",
     "keywords": ["Freshdesk", "Helpdesk", "Customer support", "REST", "API", "Wrapper", "JSON"],
     "license": "GPL-2.0+",
     "authors": [
