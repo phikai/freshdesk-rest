@@ -366,7 +366,7 @@ class Ticket extends Rest
         $response = json_decode(
             $this->restCall(
                 $url,
-                self::METHOD_DELETE
+                self::METHOD_DEL
             )
         );
         if ($reload === true)
