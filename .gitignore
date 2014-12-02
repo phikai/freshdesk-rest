@@ -3,3 +3,6 @@
 alertus.php
 memo.txt
 *~
+.*
+composer.phar
+vendor/*
