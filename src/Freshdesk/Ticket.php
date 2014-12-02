@@ -350,6 +350,92 @@ class Ticket extends Rest
     }
 
     /**
+     * Delete a ticket, optionally make a second API call, to verify success
+     * just in case the API response proves to be unreliable
+     * @param TicketM $ticket
+     * @param bool $reload = false
+     * @return TicketM
+     */
+    public function deleteTicket(TicketM $ticket, $reload = false)
+    {
+        $url = sprintf(
+            '/helpdesk/tickets/%d.json',
+            $ticket->getDisplayId()
+        );
+        $response = $ticket->toJsonData();
+        $response = json_decode(
+            $this->restCall(
+                $url,
+                self::METHOD_DEL
+            )
+        );
+        if ($reload === true)
+            return $this->getFullTicket($ticket);
+        return $ticket->setDeleted(true);
+    }
+
+    /**
+     * Restore a previously deleted ticket
+     * @param TicketM $ticket
+     * @return TicketM
+     */
+    public function restoreTicket(TicketM $ticket)
+    {
+        $url = sprintf(
+            '/helpdesk/tickets/%d/restore.json',
+            $ticket->getDisplayId()
+        );
+        $response = json_decode(
+            $this->restCall(
+                $url,
+                self::METHOD_PUT
+            )
+        );
+        if (is_array($response))
+        {//API documentation is a tad unclear: according to freshdesk.com/api, the response is an array
+            $response = $response[0];
+        }
+        return $ticket->setAll($response);
+    }
+
+    /**
+     * Assign given ticket to responder by id
+     * @param TicketM $ticket
+     * @param int $responder
+     * @return TicketM
+     * @throws \InvalidArgumentException
+     */
+    public function assignTicket(TicketM $ticket, $responder)
+    {
+        if (!is_numeric($responder) || $responder < 1)
+        {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Failed to assign ticket #%d to "%s", responder must be a positive numeric value',
+                    $ticket->getDisplayId(),
+                    $responder
+                )
+            );
+        }
+        $url = sprintf(
+            '/helpdesk/tickets/%d/assign.json?responder_id=%d',
+            $ticket->getDisplayId(),
+            (int) $responder
+        );
+        $response = json_decode(
+            $this->restCall(
+                $url,
+                self::METHOD_PUT
+            )
+        );
+        if (is_array($response))
+        {//again, the docs on freshdesk.com/api are unclear. This call seems to be returning an array
+            $response = $response[0];
+        }
+        return $ticket->setAll($response);
+    }
+
+    /**
      * Add note to ticket, ticket model is expected to be set on Note model
      * @param Note $note
      * @return Note

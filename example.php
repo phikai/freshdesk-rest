@@ -83,3 +83,10 @@ $model = new TicketM(
 
 //create new ticket, basic example
 $t->createNewTicket($model);
+//Assign a ticket to an agent/responder:
+$responderId = 123456;
+$t->assignTicket($model, $responderId);
+//delete a ticket:
+$t->deleteTicket($model);//pass true as second argument to force a reload of the ticket
+//restore a ticket that was deleted via the api:
+$t->restoreTicket($model);

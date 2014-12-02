@@ -91,12 +91,17 @@ Any contributions are, of course, greatly appreciated. If you wish to contribute
 4. Document your code as much as possible. The code we have ATM needs some more documentation as it is. Adding code that is un-documented will only increase the problem...
 5. Use the data models (`Freshdesk\Model` namespace) wherever you can. The goal of this API is to offer a _clear & safe_ interface, type-hints are a vital part of this.
 
-To clarify a few points: ATM, there is no method to delete tickets through this API wrapper in the master branch. There is a `feature/delete-ticket` branch where this feature is being developed.
-Managing tickets is considered part of the Ticket-API, hence the `deleteTicket` and `restoreTicket` methods have been added to `Freshdesk\Ticket`, not `Freshdesk\Rest`.
-Both API calls require a ticket ID to be performed, but instead of taking just the ID, you are required to pass an instance of `Freshdesk\Model\Ticket` to these methods. The reason for this is twofold
+As an illustration: initially, deleting and assigning tickets was not supported by this wrapper. Users had to either extend the `Freshdesk\Ticket` class themselves, or create a new child of `Freshdesk\Rest`, and write their own methods. This issue has been addressed as follows:
 
-- Type-hinting data models ensure the values are correctly formed, and of the correct type
-- In most cases, the data these models represent will be returned (after being updated). Since objects are passed around by reference, this makes the wrapper more reliable overall
+- Create a `feature/delete-ticket` branch
+- Add methods to `Freshdesk\Ticket`, as deleting, restoring and assigning tickets is clearly a matter for the _Ticket_ API class
+- Modify the `Freshdesk\Model\Ticket` class accordingly (adding `responderId` and `deleted` properties, each with their getter and setter methods)
+- Update the example.php file to demonstrate the usage for the new methods
+- Test the code (once the `feature/tests` branch is merged, provide unit-tests)
+- commit & merge
+
+The reasons why changes like this _have_ to go in the appropriate child of `Freshdesk\Rest` are twofold. Even though the methods need little else than a ticket id (and in the case of `assignTicket`, a responderId aswell), this approach forces users into using the data models. This, in turn, enables type-hinting for easier debugging and guaranteed value checking.
+Another advantage is that objects are passed aroudn as references, which means that passing an object to a method means that all variables, regardless of scope, will reference the most up-to-date instance of the object, and therefore, the data is far more likely to be accurate.
 
 A quick example for completeness, and in order to convince the sceptics:
 
