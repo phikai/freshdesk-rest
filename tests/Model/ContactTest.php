@@ -4,6 +4,19 @@ use Freshdesk\Model\Contact;
 class ContactTest extends PHPUnit_Framework_TestCase
 {
     /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testArgumentExceptions()
+    {
+        $error = (object) array(
+            'errors'    => (object) array(
+                'error' => 'test error message'
+            )
+        );
+        $contact = new Contact($error);
+    }
+
+    /**
      * @dataProvider dateTimeDataProvider
      */
     public function testDateTimeSetters(array $args, array $expect)
