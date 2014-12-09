@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/EVODelavega/freshdesk-rest.svg?branch=master)](https://travis-ci.org/EVODelavega/freshdesk-rest)
+
 # FreshDesk.com PHP API Wrapper
 
 The "composer-aware edition".
@@ -13,12 +15,11 @@ Composer, obviously, but apart from that, this feature branch offers:
 
 
 ## Ways To Improve
-1. Still being work in progress: separation of concern is something that needs a lot of work
-2. Example child classes in the Freshdesk namespace (ie Tickets, for all ticket-related API calls)
-3. Better documentation
+1. Still being work in progress: separation of concern is something that needs a lot of work (being tackled in the feature/beta branch ATM)
+3. Better documentation + WIKI on how to contribute
 4. Out of the box support for filters, statuses and the like (through class-constants)
-5. Unit-tests are a glaring omission ATM
-6. Possibly add some data-models for tickets, customers, users and the like...
+5. Unit-tests are finally being added... though there's much work to be done on that front
+6. Possibly add some data-models for responses (like Model\Ticket classes)
 
 ## Usage
 Add this repo to your composer.json file to use this repository as a direct dependency.
@@ -46,7 +47,7 @@ This package has been added to packagist, too. Packagist only accepts lower-case
 }
 ```
 
-If you are going to use this wrapper to create new tickets in freshdesk, there is a postUpdate/postInstall script you can use to set the cc-email constant in the Freshdesk\Model\Ticket class. To automatically configure this constant, add the following to your _scripts_ section in the composer.json file:
+If you are going to use this wrapper to create new tickets in freshdesk, there is a postUpdate/postInstall script you can use to set the cc-email constant in the Freshdesk\Model\Ticket class. To automatically configure this constant, add the following to your _scripts_ section in the composer.json file (Note: This feature is deprecated):
 
 ```json
 "scripts": {
