@@ -6,3 +6,4 @@ memo.txt
 .*
 composer.phar
 vendor/*
+!.travis.yml
