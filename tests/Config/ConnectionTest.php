@@ -15,6 +15,15 @@ class ConnectionTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException LogicException
+     * @expectedExceptionMessageRegExp /expects \$url to be parsable, "/
+     */
+    public function testUrlSetterFalse()
+    {
+        $this->instance->setByUrl(':');
+    }
+    
+    /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessageRegExp /expects \$url to be a string not a "/
      * @dataProvider setUrlMixedProvider

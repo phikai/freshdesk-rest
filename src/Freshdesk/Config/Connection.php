@@ -88,6 +88,7 @@ class Connection
      * @return $this
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
+     * @throws \LogicException
      */
     public function setByUrl($url, $debug = false)
     {
@@ -102,6 +103,16 @@ class Connection
             );
         }
         $data = parse_url($url);
+        if ($data === false)
+        {
+            throw new \LogicException(
+                sprintf(
+                    '%s expects $url to be parsable, "%s" is not',
+                    __METHOD__,
+                    $url
+                )
+            );
+        }
         $scheme = $data['scheme'].'://';
         if ($scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
         {

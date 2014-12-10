@@ -36,6 +36,29 @@ class Ticket extends Rest
     }
 
     /**
+     * Returns all the open tickets of the API user's credentials used for the request
+     * @return null|array
+     */
+    public function getApiUserTickets()
+    {
+        $json = json_decode(
+            $this->restCall(
+                '/helpdesk/tickets.json',
+                self::METHOD_GET
+            )
+        );
+
+        if (!$json)
+            return null;
+        $models = array();
+        foreach ($json as $ticket)
+        {
+            $models[] = new TicketM($ticket);
+        }
+        return $models;
+    }
+
+    /**
      * Get all tickets from user (based on email)
      * @param string $email
      * @return null|\stdClass|array
