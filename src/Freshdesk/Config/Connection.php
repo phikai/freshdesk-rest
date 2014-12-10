@@ -55,6 +55,16 @@ class Connection
      */
     public function __construct($url, $debug = false)
     {
+        if (!is_string($url))
+        {
+            throw new InvalidArgumentException(
+                sprintf(
+                    '%s expects $url to be a string, instead saw %s',
+                    __METHOD__,
+                    gettype($url)
+                )
+            );
+        }
         if (!preg_match('/^https?:\/\/[^:]+:[^@]+@.+$/', $url))
             throw new InvalidArgumentException(
                 sprintf(
