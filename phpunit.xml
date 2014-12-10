@@ -4,6 +4,9 @@
     <testsuite name="models">
       <directory>tests/Model</directory>
     </testsuite>
+    <testsuite name="API">
+      <directory>tests/Api</directory>
+    </testsuite>
   </testsuites>
 	<php>
 		<ini name="date.timezone" value="Europe/London" />
