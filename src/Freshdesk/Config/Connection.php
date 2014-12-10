@@ -86,16 +86,39 @@ class Connection
      * @param string $url
      * @param bool $debug = false
      * @return $this
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function setByUrl($url, $debug = false)
     {
+        if (!is_string($url))
+        {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    '%s expects $url to be a string not a "%s"',
+                    __METHOD__,
+                    gettype($url)
+                )
+            );
+        }
         $data = parse_url($url);
+        $scheme = $data['scheme'].'://';
+        if ($scheme !== self::SCHEME_HTTP && $scheme !== self::SCHEME_HTTPS)
+        {
+            throw new \RuntimeException(
+                sprintf(
+                    '%s is an invalid scheme, expecting %s or %s',
+                    $scheme,
+                    self::SCHEME_HTTP,
+                    self::SCHEME_HTTPS
+                )
+            );
+        }
         /** @noinspection PhpUndefinedMethodInspection */
         $this->setPassword($data['pass'])
             ->setUserName($data['user'])
-            ->setPassword($data['pass'])
             ->setDomain($data['host'])
-            ->setScheme($data['scheme']);
+            ->setScheme($scheme);
         $this->debug = $debug;
         return $this;
     }
