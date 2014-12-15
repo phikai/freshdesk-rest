@@ -271,8 +271,14 @@ class Note extends Base
     /**
      * @return \DateTime
      */
-    public function getUpdatedAt()
+    public function getUpdatedAt($asString = true)
     {
+        if ($asString === true)
+        {
+            if ($this->updatedAt instanceof \DateTime)
+                return $this->updatedAt->format('Y-m-d H:i:s');
+            return '';
+        }
         return $this->updatedAt;
     }
 

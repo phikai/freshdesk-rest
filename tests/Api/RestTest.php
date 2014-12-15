@@ -1,5 +1,4 @@
 <?php
-use Freshdesk\Ticket;
 use Freshdesk\Model\Ticket as TicketM;
 use Freshdesk\Config\Connection;
 
@@ -81,10 +80,10 @@ class RestTest extends PHPUnit_Framework_TestCase
                 $expected = $ticket->getNotes();
                 $notes = $target->getNotes();
                 /** @var Freshdesk\Model\Note $note */
-                foreach ($notes as $k => $note) {
-                    $this->assertInstanceOf(get_class($expected[$k]), $note);
-                    $this->assertTrue($expected[$k]->getDeleted() === $note->getDeleted());
-                    $this->assertEquals($expected[$k]->toJsonData(), $note->toJsonData());
+                foreach ($notes as $k2 => $note) {
+                    $this->assertInstanceOf(get_class($expected[$k2]), $note);
+                    $this->assertTrue($expected[$k2]->getDeleted() === $note->getDeleted());
+                    $this->assertEquals($expected[$k2]->toJsonData(), $note->toJsonData());
                 }
             }
         }

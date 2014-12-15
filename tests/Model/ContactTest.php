@@ -13,7 +13,7 @@ class ContactTest extends PHPUnit_Framework_TestCase
                 'error' => 'test error message'
             )
         );
-        $contact = new Contact($error);
+        new Contact($error);
     }
 
     /**
@@ -90,6 +90,15 @@ class ContactTest extends PHPUnit_Framework_TestCase
                 array(
                     'getCreatedAt' => new DateTime('2014-01-01 00:00:00'),
                     'getUpdatedAt' => null
+                )
+            ),
+            array(
+                array(
+                    'updatedAt' => '2014-01-01 00:00:00'
+                ),
+                array(
+                    'getCreatedAt' => null,
+                    'getUpdatedAt' => new DateTime('2014-01-01 00:00:00')
                 )
             )
         );
