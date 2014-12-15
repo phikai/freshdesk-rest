@@ -147,6 +147,24 @@ class RestTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessageRegExp /Ticket \d+ not found: test error message/
+     */
+    public function testErrorResponse()
+    {
+        $this->restMock->method('restCall')
+            ->willReturn(
+                '{"errors":{"error":"test error message"}}'
+            );
+        $target = new TicketM(
+            array(
+                'displayId' => 1
+            )
+        );
+        $this->restMock->getTicketById($target->getDisplayId(), $target);
+    }
+
     public function testGetRaw()
     {
         $error = '{"errors":{"error":"test error message"}}';
