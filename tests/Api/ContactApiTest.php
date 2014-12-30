@@ -33,16 +33,16 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
                 file_get_contents('./tests/_data/user.json')
             )
         );
+    }
+
+    public function testGetContactById()
+    {
         $this->restMock->method('restCall')
             ->willReturn(
                 json_encode(
                     $this->data
                 )
             );
-    }
-
-    public function testGetContactById()
-    {
         $contact = new ContactM(
             $this->data
         );
@@ -65,6 +65,12 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
 
     public function testGetContact()
     {
+        $this->restMock->method('restCall')
+            ->willReturn(
+                json_encode(
+                    $this->data
+                )
+            );
         $contact = new ContactM(
             $this->data
         );
@@ -107,4 +113,21 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
         }
    }
 
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessageRegExp /Error: test error message/
+     */
+    public function testErrorResponse()
+    {
+        $this->restMock->method('restCall')
+            ->willReturn(
+                '{"errors":{"error":"test error message"}}'
+            );
+        $target = new ContactM(
+            array(
+                'id' => 1
+            )
+        );
+        $this->restMock->getContactById($target);
+    }
 }
