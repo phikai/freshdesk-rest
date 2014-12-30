@@ -1,7 +1,7 @@
 <?php
 namespace Freshdesk;
 
-use Freshdesk\Model\Contact;
+use Freshdesk\Model\Contact as ContactM;
 use Freshdesk\Model\Ticket as TicketM,
     Freshdesk\Model\Note,
     \InvalidArgumentException,
@@ -84,13 +84,13 @@ class Ticket extends Rest
 
     /**
      * get organized array of tickets by email
-     * @param Contact|string $contact
+     * @param ContactM|string $contact
      * @param bool $assoc = true
      * @return array
      */
     public function getGroupedTickets($contact, $assoc = true)
     {
-        if ($contact instanceof Contact)
+        if ($contact instanceof ContactM)
             $contact = $contact->getEmail();
         $getter = $assoc === true ? 'getStatusName' : 'getStatus';
         $tickets = $this->getTicketsByEmail($contact);
