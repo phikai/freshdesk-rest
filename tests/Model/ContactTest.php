@@ -4,7 +4,22 @@ use Freshdesk\Model\Contact;
 class ContactTest extends PHPUnit_Framework_TestCase
 {
     /**
+     * @var \stdClass
+     */
+    protected $data = null;
+
+    protected function setUp()
+    {
+        $this->data = json_decode(
+            trim(
+                file_get_contents('./tests/_data/user.json')
+            )
+        );
+    }
+
+    /**
      * @expectedException InvalidArgumentException
+     * @expectedExceptionMessageRegExp /Contact, data was error response: test error message/
      */
     public function testArgumentExceptions()
     {
@@ -14,6 +29,84 @@ class ContactTest extends PHPUnit_Framework_TestCase
             )
         );
         new Contact($error);
+    }
+
+    public function testRawObjectArgument()
+    {
+        $contact = new Contact(
+            $this->data
+        );
+        $values = array(
+            'getCreatedAt'  => new DateTime(
+                $this->data->user->created_at
+            ),
+            'getUpdatedAt'  => new DateTime(
+                $this->data->user->updated_at
+            )
+        );
+        foreach ($values as $getter => $date)
+        {
+            $this->assertInstanceOf(
+                get_class($date),
+                $contact->{$getter}()
+            );
+            $this->assertEquals(
+                $date,
+                $contact->{$getter}()
+            );
+            $this->assertEquals(
+                $date->format('Y-m-d H:i:s'),
+                $contact->{$getter}()->format('Y-m-d H:i:s')
+            );
+        }
+        return $contact;
+    }
+
+    /**
+     * @depends testRawObjectArgument
+     * @param Contact $compare
+     */
+    public function testAssocArgument(Contact $compare)
+    {
+        $data = json_decode(
+            json_encode(
+                $this->data->user
+            ),
+            true
+        );
+        $contact = new Contact($data);
+        $this->assertEquals(
+            $compare,
+            $contact
+        );
+        $methods = get_class_methods($contact);
+        foreach ($methods as $name)
+        {
+            if (substr($name, 0, 3) === 'get')
+            {
+                $this->assertEquals(
+                    $compare->{$name}(),
+                    $contact->{$name}()
+                );
+            }
+        }
+        $date = new DateTime();
+        $instanceof = get_class($date);
+        $methods = array(
+            'getCreatedAt',
+            'getUpdatedAt'
+        );
+        foreach ($methods as $getter)
+        {
+            $this->assertInstanceOf(
+                $instanceof,
+                $contact->{$getter}()
+            );
+            $this->assertEquals(
+                $compare->{$getter}()->format('Y-m-d H:i:s'),
+                $contact->{$getter}()->format('Y-m-d H:i:s')
+            );
+        }
     }
 
     /**
