@@ -16,10 +16,9 @@ Composer, obviously, but apart from that, this feature branch offers:
 
 ## Ways To Improve
 1. Still being work in progress: separation of concern is something that needs a lot of work (being tackled in the feature/beta branch ATM)
-3. Better documentation + WIKI on how to contribute
-4. Out of the box support for filters, statuses and the like (through class-constants)
-5. Unit-tests are finally being added... though there's much work to be done on that front
-6. Possibly add some data-models for responses (like Model\Ticket classes)
+2. Better documentation + WIKI on how to contribute
+3. Out of the box support for filters, statuses and the like (through class-constants)
+4. Tests have been added, but they can be improved on, still
 
 ## Usage
 Add this repo to your composer.json file to use this repository as a direct dependency.
