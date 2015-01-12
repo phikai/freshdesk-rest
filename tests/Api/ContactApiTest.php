@@ -107,12 +107,40 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
                 $connection->getBaseUrl()
             );
             $this->assertEquals(
+                $configs['expected']->getBaseUrl(),
+                $connection->getBaseUrl()
+            );
+            $this->assertEquals(
+                $configs['expected']->getDomain(),
+                $connection->getDomain()
+            );
+            $this->assertEquals(
+                $configs['instance']->getDomain(),
+                $connection->getDomain()
+            );
+            $this->assertEquals(
                 $configs['instance']->getScheme(),
+                $connection->getScheme()
+            );
+            $this->assertEquals(
+                $configs['expected']->getScheme(),
                 $connection->getScheme()
             );
             $this->assertEquals(
                 $configs['instance']->getUserName(),
                 $connection->getUserName()
+            );
+            $this->assertEquals(
+                $configs['expected']->getUserName(),
+                $connection->getUserName()
+            );
+            $this->assertEquals(
+                $configs['expected']->getPassword(),
+                $connection->getPassword()
+            );
+            $this->assertEquals(
+                $configs['instance']->getPassword(),
+                $connection->getPassword()
             );
         }
     }
