@@ -58,6 +58,29 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @dataProvider badSectionProvider
+     * @expectedException InvalidArgumentException
+     * @expectedExceptionMessageRegExp /Unkown section "[^"]*", use SECTION_\* constants/
+     * @param string $section
+     */
+    public function testBadSections($section)
+    {
+        Rest::GetSection($section);
+    }
+
+    /**
+     * @return array
+     */
+    public function badSectionProvider()
+    {
+        return array(
+            array('fpo'),
+            array('bar'),
+            array('')
+        );
+    }
+
+    /**
      * @depends testConfiglessConstructor
      */
     public function testConstructor()
