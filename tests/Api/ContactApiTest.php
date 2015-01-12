@@ -19,11 +19,8 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
     {
         /** @var PHPUnit_Framework_MockObject_MockObject $this ->restMock */
         $this->restMock = $this->getMockBuilder('\Freshdesk\Contact')
-            ->setConstructorArgs(
-                array(
-                    new Connection('https://token:x@test.freshdesk.com')
-                )
-            )->setMethods(
+            ->disableOriginalConstructor()
+            ->setMethods(
                 array(
                     'restCall'
                 )

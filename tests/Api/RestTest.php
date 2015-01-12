@@ -15,16 +15,14 @@ class RestTest extends PHPUnit_Framework_TestCase
     {
         /** @var PHPUnit_Framework_MockObject_MockObject $this->restMock */
         $this->restMock = $this->getMockBuilder('\Freshdesk\Ticket')
-            ->setConstructorArgs(
-                array(
-                    new Connection('https://token:x@test.freshdesk.com')
-                )
-            )->setMethods(
+            ->disableOriginalConstructor()
+            ->setMethods(
                 array(
                     'getRawTicket',
                     'restCall'
                 )
             )->getMock();
+        /** @var PHPUnit_Framework_MockObject_MockObject $this->restMock */
 
         $this->data = json_decode(
             trim(
