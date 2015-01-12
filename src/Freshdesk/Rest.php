@@ -19,6 +19,19 @@ class Rest
     const METHOD_DEL = 'DELETE';
     const METHOD_PUT = 'PUT';
 
+    const SECTION_REST = 'self';
+    const SECTION_CONTACT = 'contact';
+    const SECTION_TICKET = 'ticket';
+
+    /**
+     * @var array
+     */
+    private static $Sections = array(
+        self::SECTION_REST      => null,
+        self::SECTION_CONTACT   => null,
+        self::SECTION_TICKET    => null,
+    );
+
     /**
      * @var \Freshdesk\Config\Connection
      */
@@ -44,9 +57,85 @@ class Rest
      */
     protected $debugLogs = array();
 
+    /**
+     * @param Connection $config
+     */
     public function __construct(Connection $config)
     {
         $this->config = $config;
+        if ($this instanceof Ticket)
+            self::$Sections[self::SECTION_TICKET] = $this;
+        else if ($this instanceof Contact)
+            self::$Sections[self::SECTION_CONTACT] = $this;
+        else
+        {
+            //avoid accidentally setting this using a child
+            $name = explode('\\', get_class($this));
+            if (end($name) === 'Rest')
+                self::$Sections[self::SECTION_REST] = $this;
+        }
+    }
+
+    /**
+     * @param string $section
+     * @param Connection $connection = null
+     * @return Rest
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public static function GetSection($section, Connection $connection = null)
+    {
+        if (!array_key_exists($section, self::$Sections))
+        {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Unkown section "%s", use SECTION_* constants',
+                    $section
+                )
+            );
+        }
+        if (self::$Sections[$section] === null)
+        {
+            if ($connection === null)
+            {//attempt to fallback to any connection we can
+                foreach (self::$Sections as $api)
+                {
+                    if ($api instanceof Rest)
+                    {//we're in Rest, so protected is accessible
+                        $connection = $api->config;
+                        break;
+                    }
+                }
+            }
+            if ($connection === null)
+            {
+                throw new \RuntimeException(
+                    'No connection config available'
+                );
+            }
+            switch ($section)
+            {
+                case self::SECTION_CONTACT:
+                    self::$Sections[$section] = new Contact($connection);
+                    break;
+                case self::SECTION_TICKET:
+                    self::$Sections[$section] = new Ticket($connection);
+                    break;
+                case self::SECTION_REST:
+                    self::$Sections[$section] = new self($connection);
+            }
+        }
+        if ($connection && self::$Sections[$section]->config !== $connection)
+        {
+            $section = clone self::$Sections[$section];
+            /** @var Rest $section */
+            $section->config = $connection;
+        }
+        else
+        {
+            $section = self::$Sections[$section];
+        }
+        return $section;
     }
 
     /**

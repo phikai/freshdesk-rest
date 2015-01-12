@@ -1,6 +1,8 @@
 <?php
 use Freshdesk\Model\Contact as ContactM;
 use Freshdesk\Config\Connection;
+use Freshdesk\Contact;
+use Freshdesk\Rest;
 
 
 class ContactApiTest extends PHPUnit_Framework_TestCase
@@ -29,6 +31,82 @@ class ContactApiTest extends PHPUnit_Framework_TestCase
             trim(
                 file_get_contents('./tests/_data/user.json')
             )
+        );
+    }
+
+    /**
+     * @dataProvider configlessProvider
+     * @expectedException RuntimeException
+     * @expectedExceptionMessageRegExp /No connection config available/
+     * @param string $section
+     */
+    public function testConfiglessConstructor($section)
+    {
+        Rest::GetSection($section);
+    }
+
+    /**
+     * @return array
+     */
+    public function configlessProvider()
+    {
+        return array(
+            array(Rest::SECTION_REST),
+            array(Rest::SECTION_TICKET),
+            array(Rest::SECTION_CONTACT)
+        );
+    }
+
+    /**
+     * @depends testConfiglessConstructor
+     */
+    public function testConstructor()
+    {
+        $connection = new Connection('https://valid:pass@test.freshdesk.com');
+        $contact = new Contact($connection);
+        $sectionGetters = $this->configlessProvider();
+        $sectionGetters = array_pop($sectionGetters);
+        foreach ($sectionGetters as $section)
+        {
+            $section = Rest::GetSection($section);
+            if ($section instanceof Contact)
+                $this->assertEquals($contact, $section);
+            $configs = $this->getConnection(
+                $section,
+                $contact
+            );
+            $this->assertEquals(
+                $configs['expected'],
+                $configs['instance']
+            );
+            $this->assertEquals(
+                $configs['instance']->getBaseUrl(),
+                $connection->getBaseUrl()
+            );
+            $this->assertEquals(
+                $configs['instance']->getScheme(),
+                $connection->getScheme()
+            );
+            $this->assertEquals(
+                $configs['instance']->getUserName(),
+                $connection->getUserName()
+            );
+        }
+    }
+
+    /**
+     * @param Rest $section
+     * @param Rest $expected
+     * @return array
+     */
+    protected function getConnection(Rest $section, Rest $expected)
+    {
+        $reflection = new \ReflectionClass('\Freshdesk\Rest');
+        $reflectionConfig = $reflection->getProperty('config');
+        $reflectionConfig->setAccessible(true);
+        return array(
+            'instance'  => $reflectionConfig->getValue($section),
+            'expected'  => $reflectionConfig->getValue($expected)
         );
     }
 
