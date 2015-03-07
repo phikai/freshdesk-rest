@@ -3,17 +3,7 @@
  * File: example.php
  * Project: freshdesk-solutions
  */
-//Require the FreshDesk API Library
-//autoloaded, in real-life, of course
-require 'src/Freshdesk/Config/Connection.php';
-require 'src/Freshdesk/Rest.php';
-require 'src/Freshdesk/Ticket.php';
-require 'src/Freshdesk/Model/Base.php';
-require 'src/Freshdesk/Model/Ticket.php';
-require 'src/Freshdesk/Model/Contact.php';
-require 'src/Freshdesk/Model/CustomField.php';
-require 'src/Freshdesk/Tool/ModelGenerator.php';
-
+require 'vendor/autoload.php';
 //use the classes
 use Freshdesk\Config\Connection,
     Freshdesk\Rest,
