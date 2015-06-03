@@ -514,9 +514,9 @@ class Ticket extends Base
         );
 
         $custom = [];
-        $custom_fields = $this->getCustomFields();
+        $customFields = $this->getCustomFields();
         /** @var \Freshdesk\Model\CustomField $f */
-        foreach ($custom_fields as $f) {
+        foreach ($customFields as $f) {
             $custom[$f->getName(true)] = $f->getValue();
         }
 
