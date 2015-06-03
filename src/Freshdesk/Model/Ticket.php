@@ -533,7 +533,7 @@ class Ticket extends Base
             'cc_emails' => $this->getCcEmailVal()
         );
 
-        $custom = [];
+        $custom = array();
         $customFields = $this->getCustomFields();
         /** @var \Freshdesk\Model\CustomField $f */
         foreach ($customFields as $f) {
