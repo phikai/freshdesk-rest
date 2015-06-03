@@ -502,16 +502,16 @@ class Ticket extends Base
      */
     public function toJsonData()
     {
-        $data = [
-            self::RESPONSE_KEY => [
+        $data = array(
+            self::RESPONSE_KEY => array(
                 'description'   => $this->description,
                 'subject'       => $this->subject,
                 'email'         => $this->email,
                 'priority'      => $this->priority,
                 'status'        => $this->status
-            ],
+            ),
             'cc_emails' => $this->getCcEmailVal()
-        ];
+        );
 
         $custom = [];
         $custom_fields = $this->getCustomFields();
