@@ -102,6 +102,11 @@ class Ticket extends Base
     protected $ccEmailVal = null;
 
     /**
+     * @var string
+     */
+    protected $tags;
+
+    /**
      * @var array<CustomField>
      */
     protected $customField = array();
