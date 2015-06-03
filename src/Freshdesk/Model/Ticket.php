@@ -102,9 +102,9 @@ class Ticket extends Base
     protected $ccEmailVal = null;
 
     /**
-     * @var string
+     * @var array
      */
-    protected $tags;
+    protected $tags = array();
 
     /**
      * @var array<CustomField>
@@ -383,15 +383,36 @@ class Ticket extends Base
     }
 
     /**
-     * Set any tags on the ticket
+     * Set multiple tags on the ticket
      *
-     * @param string $tags A comma-delimited string of tags
+     * @param mixed $tags Can be either an array, or a comma-delimited string of tags
      * @return $this
-     * @author Sam Wierema <sam@messagebird.com>
      */
     public function setTags($tags)
     {
-        $this->tags = (string) $tags;
+        if (is_string($tags)) {
+            $tags = explode(',', $tags);
+        }
+
+        if (is_array($tags)) {
+            $this->tags = $tags;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a single tag to the ticket
+     *
+     * @param string $tag A single tag to add
+     * @return $this
+     */
+    public function addTag($tag)
+    {
+        if (is_string($tag)) {
+            $this->tags[] = $tag;
+        }
+
         return $this;
     }
 
@@ -399,11 +420,10 @@ class Ticket extends Base
      * Retrieve any tags set on the ticket
      *
      * @return string
-     * @author Sam Wierema <sam@messagebird.com>
      */
     public function getTags()
     {
-        return (string) $this->tags;
+        return implode(',', $this->tags);
     }
 
     /**
