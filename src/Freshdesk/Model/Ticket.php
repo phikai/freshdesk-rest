@@ -378,6 +378,30 @@ class Ticket extends Base
     }
 
     /**
+     * Set any tags on the ticket
+     *
+     * @param string $tags A comma-delimited string of tags
+     * @return $this
+     * @author Sam Wierema <sam@messagebird.com>
+     */
+    public function setTags($tags)
+    {
+        $this->tags = (string) $tags;
+        return $this;
+    }
+
+    /**
+     * Retrieve any tags set on the ticket
+     *
+     * @return string
+     * @author Sam Wierema <sam@messagebird.com>
+     */
+    public function getTags()
+    {
+        return (string) $this->tags;
+    }
+
+    /**
      * @param string $ccemail
      * @return $this
      */
@@ -473,36 +497,33 @@ class Ticket extends Base
      */
     public function toJsonData()
     {
-        $custom = array();
-        $fields = $this->getCustomFields();
+        $data = [
+            self::RESPONSE_KEY => [
+                'description'   => $this->description,
+                'subject'       => $this->subject,
+                'email'         => $this->email,
+                'priority'      => $this->priority,
+                'status'        => $this->status
+            ],
+            'cc_emails' => $this->getCcEmailVal()
+        ];
+
+        $custom = [];
+        $custom_fields = $this->getCustomFields();
         /** @var \Freshdesk\Model\CustomField $f */
-        foreach ($fields as $f)
+        foreach ($custom_fields as $f) {
             $custom[$f->getName(true)] = $f->getValue();
-        if (empty($custom))
-            return json_encode(
-                array(
-                    self::RESPONSE_KEY   => array(
-                        'description'   => $this->description,
-                        'subject'       => $this->subject,
-                        'email'         => $this->email,
-                        'priority'      => $this->priority,
-                        'status'        => $this->status
-                    ),
-                    'cc_emails' => $this->getCcEmailVal()
-                )
-            );
-        return json_encode(
-            array(
-                self::RESPONSE_KEY   => array(
-                    'description'   => $this->description,
-                    'subject'       => $this->subject,
-                    'email'         => $this->email,
-                    'priority'      => $this->priority,
-                    'status'        => $this->status,
-                    'custom_field'  => $custom
-                ),
-                'cc_emails' => $this->getCcEmailVal()
-            )
-        );
+        }
+
+        if (!empty($custom)) {
+            $data[self::RESPONSE_KEY]['custom_field'] = $custom;
+        }
+
+        $tags = $this->getTags();
+        if (!empty($tags)) {
+            $data['helpdesk']['tags'] = $tags;
+        }
+
+        return json_encode($data);
     }
 }
