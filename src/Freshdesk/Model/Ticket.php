@@ -387,16 +387,25 @@ class Ticket extends Base
      *
      * @param mixed $tags Can be either an array, or a comma-delimited string of tags
      * @return $this
+     * @throws \InvalidArgumentException
      */
     public function setTags($tags)
     {
-        if (is_string($tags)) {
+        if (is_string($tags))
+        {
             $tags = explode(',', $tags);
         }
-
-        if (is_array($tags)) {
-            $this->tags = $tags;
+        if (!is_array($tags))
+        {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    '%s expects argument to be a string, or an array, %s given',
+                    __METHOD__,
+                    is_object($tags) ? get_class($tags) : gettype($tags)
+                )
+            );
         }
+        $this->tags = $tags;
 
         return $this;
     }
@@ -409,7 +418,8 @@ class Ticket extends Base
      */
     public function addTag($tag)
     {
-        if (is_string($tag)) {
+        if (is_string($tag))
+        {
             $this->tags[] = $tag;
         }
 
@@ -418,12 +428,14 @@ class Ticket extends Base
 
     /**
      * Retrieve any tags set on the ticket
-     *
-     * @return string
+     * @param bool $asString = true
+     * @return string|array
      */
-    public function getTags()
+    public function getTags($asString = true)
     {
-        return implode(',', $this->tags);
+        if ($asString)
+            return implode(',', $this->tags);
+        return $this->tags;
     }
 
     /**
@@ -536,16 +548,19 @@ class Ticket extends Base
         $custom = array();
         $customFields = $this->getCustomFields();
         /** @var \Freshdesk\Model\CustomField $f */
-        foreach ($customFields as $f) {
+        foreach ($customFields as $f)
+        {
             $custom[$f->getName(true)] = $f->getValue();
         }
 
-        if (!empty($custom)) {
+        if (!empty($custom))
+        {
             $data[self::RESPONSE_KEY]['custom_field'] = $custom;
         }
 
         $tags = $this->getTags();
-        if (!empty($tags)) {
+        if (!empty($tags))
+        {
             $data['helpdesk']['tags'] = $tags;
         }
 
